@@ -256,6 +256,95 @@ class Tracker:
         output['object_presence_score_threshold'] = tracker.params.get('object_presence_score_threshold', 0.55)
 
         return output
+        
+
+    def init(self, frame, optional_box=[342, 150, 34, 60], debug=None, visdom_info=None, save_results=False):
+        params = self.get_parameters()
+
+        debug_ = debug
+        if debug is None:
+            debug_ = getattr(params, 'debug', 0)
+        params.debug = debug_
+
+        params.tracker_name = self.name
+        params.param_name = self.parameter_name
+        self._init_visdom(visdom_info, debug_)
+
+        multiobj_mode = getattr(params, 'multiobj_mode', getattr(self.tracker_class, 'multiobj_mode', 'default'))
+
+        if multiobj_mode == 'default':
+            self.tracker = self.create_tracker(params)
+            if hasattr(tracker, 'initialize_features'):
+                self.tracker.initialize_features()
+
+        elif multiobj_mode == 'parallel':
+            self.tracker = MultiObjectWrapper(self.tracker_class, params, self.visdom, fast_load=True)
+        else:
+            raise ValueError('Unknown multi object mode {}'.format(multiobj_mode))
+
+        self.output_boxes = []
+
+        #display_name = 'Display: ' + self.tracker.params.tracker_name
+        #cv.namedWindow(display_name, cv.WINDOW_NORMAL | cv.WINDOW_KEEPRATIO)
+        #cv.resizeWindow(display_name, 960, 720)
+
+        def _build_init_info(box):
+            return {'init_bbox': OrderedDict({1: box}), 'init_object_ids': [1, ], 'object_ids': [1, ],
+                    'sequence_object_ids': [1, ]}
+
+        if optional_box is not None:
+            assert isinstance(optional_box, (list, tuple))
+            assert len(optional_box) == 4, "valid box's foramt is [x,y,w,h]"
+            self.output_boxes.append(optional_box)
+
+        self.tracker.initialize(frame, _build_init_info(optional_box))
+
+    def run_frame(self, frame):
+        start_time = time.time()
+        
+        if frame is None:
+            return
+
+        frame_disp = frame.copy()
+
+        # Draw box
+        out = self.tracker.track(frame)
+        state = [int(s) for s in out['target_bbox'][1]]
+        print(time.time() - start_time)
+        self.output_boxes.append(state)
+        return state[0], state[1], state[2] + state[0], state[3] + state[1]
+        #cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
+        #             (0, 255, 0), 5)
+
+        #font_color = (0, 0, 0)
+        #cv.putText(frame_disp, 'Tracking!', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+        #           font_color, 1)
+        #cv.putText(frame_disp, 'Press r to reset', (20, 55), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+        #           font_color, 1)
+        #cv.putText(frame_disp, 'Press q to quit', (20, 80), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+        #           font_color, 1)
+
+        # Display the resulting frame
+        #cv.imshow(display_name, frame_disp)
+        #key = cv.waitKey(1)
+        #if key == ord('q'):
+        #    return
+        #elif key == ord('r'):
+        #    ret, frame = cap.read()
+        #    frame_disp = frame.copy()
+
+       #     cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
+       #                (0, 0, 0), 1)
+
+       #    cv.imshow(display_name, frame_disp)
+       #     x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
+       #     init_state = [x, y, w, h]
+       #     tracker.initialize(frame, _build_init_info(init_state))
+       #     output_boxes.append(init_state)
+
+        # When everything done, release the capture
+       # cap.release()
+       # cv.destroyAllWindows()
 
     def run_video(self, videofilepath, optional_box=None, debug=None, visdom_info=None, save_results=False):
         """Run the tracker with the video file.
@@ -296,6 +385,7 @@ class Tracker:
         cv.namedWindow(display_name, cv.WINDOW_NORMAL | cv.WINDOW_KEEPRATIO)
         cv.resizeWindow(display_name, 960, 720)
         success, frame = cap.read()
+        import pdb; pdb.set_trace()
         cv.imshow(display_name, frame)
 
         def _build_init_info(box):
