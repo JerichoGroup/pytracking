@@ -21,7 +21,7 @@ def cfft2(a):
     """Do FFT and center the low frequency component.
     Always produces odd (full) output sizes."""
 
-    return rfftshift2(torch.rfft(a, 2))
+    return rfftshift2(torch.fft.rfft(a, 2))
 
 
 @tensor_operation

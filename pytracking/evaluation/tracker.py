@@ -325,6 +325,7 @@ class Tracker:
                 break
 
         while True:
+            start_time = time.time()
             ret, frame = cap.read()
 
             if frame is None:
@@ -335,6 +336,7 @@ class Tracker:
             # Draw box
             out = tracker.track(frame)
             state = [int(s) for s in out['target_bbox'][1]]
+            print(time.time() - start_time)
             output_boxes.append(state)
 
             cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
