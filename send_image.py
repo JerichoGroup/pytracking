@@ -10,15 +10,15 @@ class SendImage:
 
     def __init__(self, video_path):
         rospy.init_node("stream")
-        self.pub = rospy.Publisher('image', Image, queue_size=10)
+        self.pub = rospy.Publisher('image', Image, queue_size=1)
         self.cap = cv2.VideoCapture(video_path)
         self.bridge = CvBridge()
-        self.rate = rospy.Rate(5)
+        self.rate = rospy.Rate(10)
 
     def run(self):
         while not rospy.is_shutdown():
             ret, frame = self.cap.read()
-            if ret is None:
+            if not ret:
                 break
             self.pub.publish(self.bridge.cv2_to_imgmsg(frame, "bgr8"))
             self.rate.sleep()

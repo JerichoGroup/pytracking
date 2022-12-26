@@ -8,17 +8,16 @@ class ObjectTracker:
 
     def __init__(self):
         rospy.init_node("tracker")
-        rospy.Subscriber("image", Image, self.image_callback)
+        rospy.Subscriber("image", Image, self.image_callback, queue_size=1)
         self.bb_pub = rospy.Publisher("bounding_box", Int32MultiArray, queue_size=10)
         self.tracker = Tracker("dimp", "dimp18")
         self.init = False
         self.bridge = CvBridge()
 
     def image_callback(self, image_msg):
-
         cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-        print("receive image")
         if not self.init:
+            self.init = True
             self.tracker.init(cv_image)
         x, y,w, h =  self.tracker.run_frame(cv_image)
         bb_msg = Int32MultiArray()
