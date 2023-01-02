@@ -116,7 +116,7 @@ class DiMP(BaseTracker):
         scores_raw = self.classify_target(test_x)
 
         # Localize the target
-        translation_vec, scale_ind, s, flag = self.localize_target(scores_raw, sample_pos, sample_scales)
+        translation_vec, scale_ind, s, flag, score = self.localize_target(scores_raw, sample_pos, sample_scales)
         new_pos = sample_pos[scale_ind,:] + translation_vec
 
         # Update position and scale
@@ -171,7 +171,7 @@ class DiMP(BaseTracker):
         else:
             output_state = new_state.tolist()
 
-        out = {'target_bbox': output_state}
+        out = {'target_bbox': output_state, "flag": flag, "score": score}
         return out
 
 
@@ -257,11 +257,11 @@ class DiMP(BaseTracker):
         translation_vec1 = target_disp1 * (self.img_support_sz / output_sz) * sample_scale
 
         if max_score1.item() < self.params.target_not_found_threshold:
-            return translation_vec1, scale_ind, scores_hn, 'not_found'
+            return translation_vec1, scale_ind, scores_hn, 'not_found', max_score1.item()
         if max_score1.item() < self.params.get('uncertain_threshold', -float('inf')):
-            return translation_vec1, scale_ind, scores_hn, 'uncertain'
+            return translation_vec1, scale_ind, scores_hn, 'uncertain', max_score1.item()
         if max_score1.item() < self.params.get('hard_sample_threshold', -float('inf')):
-            return translation_vec1, scale_ind, scores_hn, 'hard_negative'
+            return translation_vec1, scale_ind, scores_hn, 'hard_negative', max_score1.item()
 
         # Mask out target neighborhood
         target_neigh_sz = self.params.target_neighborhood_scale * (self.target_sz / sample_scale) * (output_sz / self.img_support_sz)
@@ -288,19 +288,19 @@ class DiMP(BaseTracker):
             disp_threshold = self.params.dispalcement_scale * math.sqrt(sz[0] * sz[1]) / 2
 
             if disp_norm2 > disp_threshold and disp_norm1 < disp_threshold:
-                return translation_vec1, scale_ind, scores_hn, 'hard_negative'
+                return translation_vec1, scale_ind, scores_hn, 'hard_negative', max_score1.item()
             if disp_norm2 < disp_threshold and disp_norm1 > disp_threshold:
-                return translation_vec2, scale_ind, scores_hn, 'hard_negative'
+                return translation_vec2, scale_ind, scores_hn, 'hard_negative', max_score2.item()
             if disp_norm2 > disp_threshold and disp_norm1 > disp_threshold:
-                return translation_vec1, scale_ind, scores_hn, 'uncertain'
+                return translation_vec1, scale_ind, scores_hn, 'uncertain', max_score1.item()
 
             # If also the distractor is close, return with highest score
-            return translation_vec1, scale_ind, scores_hn, 'uncertain'
+            return translation_vec1, scale_ind, scores_hn, 'uncertain', max_score1.item()
 
         if max_score2 > self.params.hard_negative_threshold * max_score1 and max_score2 > self.params.target_not_found_threshold:
-            return translation_vec1, scale_ind, scores_hn, 'hard_negative'
+            return translation_vec1, scale_ind, scores_hn, 'hard_negative', max_score1.item()
 
-        return translation_vec1, scale_ind, scores_hn, 'normal'
+        return translation_vec1, scale_ind, scores_hn, 'normal', max_score1.item()
 
     def extract_backbone_features(self, im: torch.Tensor, pos: torch.Tensor, scales, sz: torch.Tensor):
         im_patches, patch_coords = sample_patch_multiscale(im, pos, scales, sz,

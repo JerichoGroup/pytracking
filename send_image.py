@@ -1,6 +1,6 @@
 import cv2
-
 import rospy 
+
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int32MultiArray
 from cv_bridge import CvBridge, CvBridgeError
@@ -13,7 +13,7 @@ class SendImage:
         self.pub = rospy.Publisher('image', Image, queue_size=1)
         self.cap = cv2.VideoCapture(video_path)
         self.bridge = CvBridge()
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(5)
 
     def run(self):
         while not rospy.is_shutdown():
