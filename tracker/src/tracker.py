@@ -20,8 +20,7 @@ class ObjectTracker:
     def __init__(self):
         self.clientsocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
-            self.clientsocket.connect(('172.17.0.1', 5556))
-            #self.clientsocket.setblocking(False)
+            self.clientsocket.connect((rospy.get_param('tracker/ip','172.17.0.1'), int(rospy.get_param("tracker/port",5556))))
         except Exception as e:
             self.clientsocket = None
 
