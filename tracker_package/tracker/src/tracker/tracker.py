@@ -112,7 +112,8 @@ class ObjectTracker:
                     bounding_box = self.clientsocket.recv(1024)
                     bounding_box = [int(value) for value in bounding_box.decode().split(",")]
                     self.tracker.init(frame, optional_box=bounding_box)
-                    self.of.roi = min_x,min_y, max_x-min_x, max_y-min_y
+                    if self.run_optical_flow:
+                        self.of.roi = min_x,min_y, max_x-min_x, max_y-min_y
         except Exception as e:
             self.clientsocket = None
 
