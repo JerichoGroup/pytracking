@@ -37,7 +37,6 @@ class VisualTrackerKLT():
         self.features = cv2.goodFeaturesToTrack(gray , **self._params.detection_params)
     
     def __call__(self, image):
-        start_time = time.time()
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
 
