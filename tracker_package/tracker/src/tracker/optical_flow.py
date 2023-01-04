@@ -35,17 +35,16 @@ class VisualTrackerKLT():
         self._prev_pyr = gray
         self.roi = roi
         self.features = cv2.goodFeaturesToTrack(gray , **self._params.detection_params)
-
+    
+    import time
     def __call__(self, image):
-
+        start_time = time.time()
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        p0 = np.squeeze(self.features) #np.squeeze()#.astype(np.float32)#np.expand_dims(,1)
+        p0 = np.squeeze(self.features)
 
         if len(p0) == 0:
             return [], [], []
 
-        # _, curr_pyr = cv2.buildOpticalFlowPyramid(gray, self._params.tracking_params["winSize"],
-        #                                              self._params.tracking_params["maxLevel"])
         curr_pyr = gray
 
 
@@ -60,13 +59,12 @@ class VisualTrackerKLT():
 
         self.features = cv2.goodFeaturesToTrack(gray , **self._params.detection_params)
         self._prev_pyr = curr_pyr
-        print(len(np.squeeze(p0[st>0])))
         if len(np.squeeze(p0[st>0])) < 10:
             print("failed to match optical flow")
-            return
+            return None
         M, mask = cv2.findHomography(np.squeeze(p0[st>0]), np.squeeze(p1[st>0]), cv2.RANSAC, 5.0)
         if M is None:
-            return
+            return None
         points = []
         point1 = [self.roi[0], self.roi[1]]
         point2 = [self.roi[0] + self.roi[2] , self.roi[1]]
@@ -82,4 +80,5 @@ class VisualTrackerKLT():
         self.roi = [min_x, min_y, max_x - min_x , max_y - min_y]
         print("optical flow")
         print(min_x, min_y, max_x, max_y)
+        print(time.time() - start_time)
         return min_x, min_y, max_x, max_y
