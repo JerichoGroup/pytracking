@@ -13,7 +13,7 @@ from pytracking.evaluation import Tracker
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 from cv_bridge import CvBridge, CvBridgeError
-from optical_flow import VisualTrackerKLT   
+from tracker.optical_flow import VisualTrackerKLT   
 
 
 class ObjectTracker:
@@ -116,10 +116,3 @@ class ObjectTracker:
         except Exception as e:
             self.clientsocket = None
 
-
-if __name__ == '__main__':
-   try:
-       tracker = ObjectTracker()
-       rospy.spin()
-   except rospy.ROSInterruptException:
-       pass

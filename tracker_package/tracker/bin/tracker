@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+from tracker.tracker import ObjectTracker
+import rospy
+
+if __name__ == '__main__':
+  try:
+      tracker = ObjectTracker()
+      rospy.spin()
+  except rospy.ROSInterruptException:
+      pass

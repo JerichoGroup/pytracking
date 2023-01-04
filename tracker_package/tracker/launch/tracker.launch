@@ -1,5 +1,5 @@
 <launch>
-	<node pkg="tracker" type="tracker.py" name="tracker" output="screen">
+	<node pkg="tracker" type="tracker" name="tracker" output="screen">
 	<param name="ip" value="172.17.0.1" />
 	<param name="port" value="5556" />
         <param name="run_optical_flow" value="0" />
