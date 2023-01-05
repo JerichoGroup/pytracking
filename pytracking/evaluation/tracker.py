@@ -258,7 +258,7 @@ class Tracker:
         return output
         
 
-    def init(self, frame, optional_box=[225, 149, 273 ,221], debug=None, visdom_info=None, save_results=False):
+    def init_tracker(self, frame, optional_box, debug=None, visdom_info=None, save_results=False):
         params = self.get_parameters()
 
         debug_ = debug

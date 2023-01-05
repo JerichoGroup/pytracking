@@ -1,0 +1,15 @@
+<launch>
+	<node pkg="tracker" type="server.py" name="server" output="screen">
+	</node>
+	<node pkg="tracker" type="send_image.py" name="send_image" output="screen">
+	</node>
+	<node pkg="tracker" type="tracker" name="tracker" output="screen">
+	<param name="ip" value="127.0.0.1" />
+	<param name="port" value="5556" />
+        <param name="run_optical_flow" value="0" />
+        <param name="track_run_iter" value="10" />
+        <param name="init_timeout" value="20" />
+	</node>
+	<test test-name="test" pkg="tracker" type="test.py" name="test">
+	</test>
+</launch>
