@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from tracker.tracker import ObjectTracker
 import rospy
+from tracker.tracker import ObjectTracker
 
 if __name__ == '__main__':
   try:

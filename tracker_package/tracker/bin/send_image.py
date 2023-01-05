@@ -6,6 +6,8 @@ from std_msgs.msg import Int32MultiArray
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 
+VIDEO_PATH = "/home/jetson/beU/semi_stable_door1.mp4"
+
 class SendImage:
 
     def __init__(self, video_path):
@@ -26,6 +28,6 @@ class SendImage:
  
 if __name__ == '__main__':
     try:
-        SendImage("/home/jetson/beU/semi_stable_door1.mp4").run()
+        SendImage(VIDEO_PATH).run()
     except rospy.ROSInterruptException:
          pass
