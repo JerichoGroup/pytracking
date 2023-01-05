@@ -6,14 +6,9 @@ class VisualTrackerKLT():
     class Params:
         def __init__(self):
 
-            self.max_corners_total = 500
-            self.max_corners_per_object = 8
-            self.mid_corners_per_object = 4
-            self.min_corners_per_object = 2
             self.bidirectional_enable = True
             self.bidirectional_thresh = 2.0
-            self.feature_update_rate = 10
-
+            self.min_points_for_find_homography = 10
             self.detection_params = dict(maxCorners=500,
                                         qualityLevel=0.01,
                                         minDistance=21,
@@ -57,8 +52,7 @@ class VisualTrackerKLT():
 
         self.features = cv2.goodFeaturesToTrack(gray , **self._params.detection_params)
         self._prev_pyr = curr_pyr
-        if len(np.squeeze(p0[st>0])) < 10:
-            print("failed to match optical flow")
+        if len(np.squeeze(p0[st>0])) < self._params.min_points_for_find_homography:
             return None
         M, mask = cv2.findHomography(np.squeeze(p0[st>0]), np.squeeze(p1[st>0]), cv2.RANSAC, 5.0)
         if M is None:
@@ -69,13 +63,12 @@ class VisualTrackerKLT():
         point3 = [self.roi[0] + self.roi[2], self.roi[1] + self.roi[3]]
         point4 = [self.roi[0] , self.roi[1] + self.roi[3]]
         coord_of_roi = np.array([point1, point2, point3, point4]).reshape(-1, 1, 2)
-        tmp_roi = cv2.perspectiveTransform(coord_of_roi.astype(np.float), M)
-        tmp_roi = tmp_roi.reshape(-1, 2)
-        min_x = np.min(tmp_roi, axis=0)[0]
-        min_y = np.min(tmp_roi, axis=0)[1]
-        max_x = np.max(tmp_roi, axis=0)[0]
-        max_y = np.max(tmp_roi, axis=0)[1]
-        self.roi = [min_x, min_y, max_x - min_x , max_y - min_y]
-        print("optical flow")
-        print(min_x, min_y, max_x, max_y)
+        transform_points = cv2.perspectiveTransform(coord_of_roi.astype(np.float), M).reshape(-1,2)
+        min_x = np.min(transform_points, axis=0)[0]
+        min_y = np.min(transform_points, axis=0)[1]
+        max_x = np.max(transform_points, axis=0)[0]
+        max_y = np.max(transform_points, axis=0)[1]
+        w = max_x - min_x
+        h = max_y - min_y
+        self.roi = [min_x, min_y, w, h]
         return min_x, min_y, max_x, max_y

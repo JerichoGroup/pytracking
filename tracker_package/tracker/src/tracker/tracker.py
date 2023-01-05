@@ -20,8 +20,10 @@ class ObjectTracker:
 
     def __init__(self):
         self.clientsocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.ip = rospy.get_param('tracker/ip','172.17.0.1')
+        self.port = int(rospy.get_param("tracker/port",5556))
         try:
-            self.clientsocket.connect((rospy.get_param('tracker/ip','172.17.0.1'), int(rospy.get_param("tracker/port",5556))))
+            self.clientsocket.connect((self.ip, self.port))
         except Exception as e:
             self.clientsocket = None
         self.run_optical_flow = bool(int(rospy.get_param('tracker/run_optical_flow', 0)))
@@ -49,7 +51,7 @@ class ObjectTracker:
                 return 
             bounding_box = self.init_bounding_box(orig)
             if self.run_optical_flow:
-                self.of.init(orig, bounding_box) 
+                self.of.init(orig, bounding_box)
         
         optical_flow_output = None
         if self.run_optical_flow:
@@ -62,11 +64,13 @@ class ObjectTracker:
                 max_y = int(max_y)
                 flag = "normal"
                 score = 1 # TODO THINK
+            else:
+                rospy.loginfo("failed to match features with optical flow")
         if self.tracker_counter % self.tracker_run_iter == 0 or optical_flow_output is None:
             min_x, min_y, max_x, max_y, flag, score =  self.tracker.run_frame(orig)
-            print("track")
-            print(min_x, min_y, max_x, max_y)
-            self.of.roi = min_x,min_y, max_x-min_x, max_y-min_y
+            w = max_x - min_x
+            h = max_y - min_y
+            self.of.roi = min_x,min_y, w, h
         bb_msg = Float32MultiArray()
         flag = 1 if flag == "normal" else 0
         bb_msg.data = [min_x, min_y, max_x, max_y, flag, score]
@@ -75,7 +79,7 @@ class ObjectTracker:
                          (0, 255, 0), 5)
         if self.clientsocket is not None:
             data = pickle.dumps(modify_image)
-            message_size = struct.pack("L", len(data)) 
+            message_size = struct.pack("L", len(data)) # unsigned long 
             try:
                 self.clientsocket.sendall(message_size + data)
                 self.set_new_bounding_box(orig)
@@ -85,20 +89,20 @@ class ObjectTracker:
     def reconnect_to_socket(self):
         self.clientsocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
-            self.clientsocket.connect((rospy.get_param('tracker/ip','172.17.0.1'), int(rospy.get_param("tracker/port",5556))))
+            self.clientsocket.connect((self.ip, self.port))
         except Exception as e:
             self.clientsocket = None
 
     def init_bounding_box(self, frame):
         data = pickle.dumps(frame)
-        message_size = struct.pack("L", len(data)) 
+        message_size = struct.pack("L", len(data)) # unsigned long 
         try:
             self.clientsocket.sendall(message_size + data)
             ready_to_read, _, _ = select.select([self.clientsocket], [], [], self.init_timeout)
             if ready_to_read:
                 bounding_box = self.clientsocket.recv(1024)
                 bounding_box = [int(value) for value in bounding_box.decode().split(",")]
-                self.tracker.init(frame, optional_box=bounding_box)
+                self.tracker.init_tracker(frame, bounding_box)
                 self.init = True
                 return bounding_box
         except Exception as e:
@@ -114,9 +118,11 @@ class ObjectTracker:
                 if ready_to_read:
                     bounding_box = self.clientsocket.recv(1024)
                     bounding_box = [int(value) for value in bounding_box.decode().split(",")]
-                    self.tracker.init(frame, optional_box=bounding_box)
+                    self.tracker.init_tracker(frame, bounding_box)
                     if self.run_optical_flow:
-                        self.of.roi = min_x,min_y, max_x-min_x, max_y-min_y
+                        w = max_x - min_x
+                        h = max_y - min_y
+                        self.of.roi = min_x, min_y, w, h
         except Exception as e:
             self.clientsocket = None
 

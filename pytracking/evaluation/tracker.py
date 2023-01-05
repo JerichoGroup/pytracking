@@ -258,7 +258,7 @@ class Tracker:
         return output
         
 
-    def init(self, frame, optional_box=[225, 149, 273 ,221], debug=None, visdom_info=None, save_results=False):
+    def init_tracker(self, frame, optional_box, debug=None, visdom_info=None, save_results=False):
         params = self.get_parameters()
 
         debug_ = debug
@@ -305,7 +305,11 @@ class Tracker:
         out = self.tracker.track(frame)
         state = [int(s) for s in out['target_bbox'][1]]
         self.output_boxes.append(state)
-        return state[0], state[1], state[2] + state[0], state[3] + state[1], out["flag"][1], out["score"][1]
+        min_x = state[0]
+        min_y = state[1]
+        max_x = state[2] + state[0]
+        max_y = state[3] + state[1]
+        return min_x, min_y, max_x, max_y, out["flag"][1], out["score"][1]
 
     def run_video(self, videofilepath, optional_box=None, debug=None, visdom_info=None, save_results=False):
         """Run the tracker with the video file.
@@ -385,7 +389,6 @@ class Tracker:
 
             # Draw box
             out = tracker.track(frame)
-            import pdb; pdb.set_trace()
             state = [int(s) for s in out['target_bbox'][1]]
             output_boxes.append(state)
 
