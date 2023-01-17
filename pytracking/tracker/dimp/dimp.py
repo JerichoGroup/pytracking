@@ -328,7 +328,6 @@ class DiMP(BaseTracker):
 
     def generate_init_samples(self, im: torch.Tensor) -> TensorList:
         """Perform data augmentation to generate initial training samples."""
-
         mode = self.params.get('border_mode', 'replicate')
         if mode == 'inside':
             # Get new sample size if forced inside the image
