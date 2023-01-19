@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-class VisualTrackerKLT:
+class Matcher:
     class Params:
         def __init__(self):
 
@@ -18,39 +18,42 @@ class VisualTrackerKLT:
                 minEigThreshold=5e-4,
             )
 
-    def __init__(self, params=Params()):
+    def __init__(self, use_orb=True, params=Params()):
+        self.orb = cv2.ORB_create()
+        self.use_orb = use_orb
         self._params = params
-        self._prev_pyr = None
-        self._kernel_d = np.ones(
-            (
-                self._params.detection_params["minDistance"],
-                self._params.detection_params["minDistance"],
-            ),
-            dtype=np.uint8,
-        )
+        self._prev_image = None
+        self.features = None
         self._frame_num = 0
 
     def init(self, image, roi):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        self._prev_pyr = gray
+        self._prev_image = gray
         self.roi = roi
         self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
 
-    def __call__(self, image):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        p0 = np.squeeze(self.features)
-
-        if len(p0) == 0:
-            return [], [], []
-
-        curr_pyr = gray
-
+    def _calc_orb(self, image):
+        kp1, des1 = self.orb.detectAndCompute(self._prev_image,None)
+        kp2, des2 = self.orb.detectAndCompute(image,None)
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        matches = bf.match(des1,des2)
+        matches = sorted(matches, key = lambda x:x.distance)
+        matches = matches[:20]
+        list_kp1 = [kp1[mat.queryIdx].pt for mat in matches]
+        list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
+        M, mask = cv2.findHomography(
+            np.squeeze(list_kp1), np.squeeze(list_kp2), cv2.RANSAC, 5.0
+        )
+        print(M)
+        return M, mask
+    
+    def _calc_optical_flow(self, p0, image):
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
-            self._prev_pyr, curr_pyr, p0, None, **self._params.tracking_params
+            self._prev_image, image, p0, None, **self._params.tracking_params
         )
         if self._params.bidirectional_enable:
             p2, st2, err2 = cv2.calcOpticalFlowPyrLK(
-                curr_pyr, self._prev_pyr, p1, None, **self._params.tracking_params
+                image, self._prev_image, p1, None, **self._params.tracking_params
             )
             proj_err = np.linalg.norm(p2 - p0, axis=1)
             st = np.squeeze(st1 * st2) * (
@@ -58,14 +61,32 @@ class VisualTrackerKLT:
             ).astype("uint8")
         else:
             st = np.squeeze(st1)
+        return st, p1 
 
-        self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
-        self._prev_pyr = curr_pyr
+    
+    def __call__(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        p0 = np.squeeze(self.features)
+
+        if len(p0) == 0:
+            return [], [], []
+        
+        st, p1 = self._calc_optical_flow(p0, image)
+        self.features = cv2.goodFeaturesToTrack(image, **self._params.detection_params)
+        self._prev_image = image
         if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
-            return None
-        M, mask = cv2.findHomography(
-            np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
-        )
+            if self.use_orb is True:
+                M, mask = self._calc_orb(image)
+                if M is None:
+                    return None
+            else:
+                return None
+        else:
+            M, mask = cv2.findHomography(
+                np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
+            )
+        if M is None and self.use_orb is True:
+            M, mask = self._calc_orb(image)
         if M is None:
             return None
         points = []
