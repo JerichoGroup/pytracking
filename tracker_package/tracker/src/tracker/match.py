@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Matcher:
     class Params:
@@ -38,13 +39,17 @@ class Matcher:
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
         matches = bf.match(des1,des2)
         matches = sorted(matches, key = lambda x:x.distance)
+        # Draw first 10 matches.
+        #img3 = cv2.drawMatches(self._prev_image,kp1,image,kp2,matches[:10],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        #plt.imshow(img3),plt.show()
+
         matches = matches[:20]
         list_kp1 = [kp1[mat.queryIdx].pt for mat in matches]
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
+        print(len(list_kp2))
         M, mask = cv2.findHomography(
             np.squeeze(list_kp1), np.squeeze(list_kp2), cv2.RANSAC, 5.0
         )
-        print(M)
         return M, mask
     
     def _calc_optical_flow(self, p0, image):

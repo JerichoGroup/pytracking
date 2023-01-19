@@ -51,7 +51,7 @@ class ObjectTracker:
         flag = 1 if flag == "normal" else 0
         data = [min_x, min_y, max_x, max_y, flag, score]
         cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 5)
-        return orig, data
+        return img, data
 
     def init_bounding_box(self, frame, bounding_box):
         self.tracker.init_tracker(frame, bounding_box)
