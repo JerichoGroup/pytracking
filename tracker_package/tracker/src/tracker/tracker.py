@@ -76,7 +76,7 @@ class ObjectTracker:
             self.of.roi = min_x, min_y, w, h
         bb_msg = Float32MultiArray()
         flag = 1 if flag == "normal" else 0
-        bb_msg.data = [min_x, min_y, max_x, max_y, flag, score]
+        bb_msg.data = [min_x, min_y, max_x-min_x, max_y-min_y, flag, score]
         self.bb_pub.publish(bb_msg)
         cv2.rectangle(modify_image, (min_x, min_y), (max_x, max_y), (0, 255, 0), 5)
         if self.clientsocket is not None:
