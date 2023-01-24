@@ -1,11 +1,13 @@
 import cv2
+import time
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 class Matcher:
     class Params:
         def __init__(self):
-
+            self.num_orb_features = 20
             self.bidirectional_enable = True
             self.bidirectional_thresh = 2.0
             self.min_points_for_find_homography = 10
@@ -31,28 +33,37 @@ class Matcher:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self._prev_image = gray
         self.roi = roi
-        self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
+        self._find_features(gray)
+
+    def _find_features(self, img):
+        features = cv2.goodFeaturesToTrack(img, **self._params.detection_params)
+        if features is None:
+            self.features = []
+        else:
+            self.features = features
 
     def _calc_orb(self, image):
-        kp1, des1 = self.orb.detectAndCompute(self._prev_image,None)
-        kp2, des2 = self.orb.detectAndCompute(image,None)
+        # start_time = time.time()
+        kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
+        kp2, des2 = self.orb.detectAndCompute(image, None)
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        matches = bf.match(des1,des2)
-        matches = sorted(matches, key = lambda x:x.distance)
-        # Draw first 10 matches.
-        #img3 = cv2.drawMatches(self._prev_image,kp1,image,kp2,matches[:10],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-        #plt.imshow(img3),plt.show()
+        matches = bf.match(des1, des2)
+        matches = sorted(matches, key=lambda x: x.distance)
+        matches = matches[: self._params.num_orb_features]
 
-        matches = matches[:20]
         list_kp1 = [kp1[mat.queryIdx].pt for mat in matches]
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
-        print(len(list_kp2))
+        if len(list_kp1) < self._params.min_points_for_find_homography:
+            return None, None
+        # print("orb time")
+        # print(time.time() - start_time)
         M, mask = cv2.findHomography(
             np.squeeze(list_kp1), np.squeeze(list_kp2), cv2.RANSAC, 5.0
         )
         return M, mask
-    
+
     def _calc_optical_flow(self, p0, image):
+        # start_time = time.time()
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
             self._prev_image, image, p0, None, **self._params.tracking_params
         )
@@ -66,23 +77,29 @@ class Matcher:
             ).astype("uint8")
         else:
             st = np.squeeze(st1)
-        return st, p1 
+        # print("optical flow time")
+        # print(time.time() - start_time)
+        return st, p1
 
-    
     def __call__(self, image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
 
         if len(p0) == 0:
-            return [], [], []
-        
+            self._find_features(image)
+            self._prev_image = image
+            return None
+
         st, p1 = self._calc_optical_flow(p0, image)
-        self.features = cv2.goodFeaturesToTrack(image, **self._params.detection_params)
+        self._find_features(image)
         self._prev_image = image
         if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
+            print("failed to match features with optical flow")
             if self.use_orb is True:
+                print("trying orb")
                 M, mask = self._calc_orb(image)
                 if M is None:
+                    print("failed to match features with orb")
                     return None
             else:
                 return None
@@ -91,6 +108,8 @@ class Matcher:
                 np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
             )
         if M is None and self.use_orb is True:
+            print("falid to calc homography with optical flow")
+            print("trying orb")
             M, mask = self._calc_orb(image)
         if M is None:
             return None

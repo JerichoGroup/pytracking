@@ -4,7 +4,7 @@ import sys
 VIDEO_PATH = ""
 sys.path.append("/home/jetson/ros/pytracking/")
 
-from tracker_only import ObjectTracker 
+from object_tracker import ObjectTracker 
 class ReadImage:
 
     def __init__(self, video_path):
