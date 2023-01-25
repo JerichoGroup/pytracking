@@ -7,7 +7,7 @@ import time
 
 from ltr.data.bounding_box_utils import masks_to_bboxes
 from pytracking.evaluation import Tracker
-from match import Matcher
+from .match import Matcher
 
 
 class ObjectTracker:
