@@ -55,7 +55,7 @@ class ObjectTracker:
             self.match.roi = min_x, min_y, w, h
         flag = 1 if flag == "normal" else 0
         data = [min_x, min_y, max_x, max_y, flag, score]
-        cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 5)
+        #cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 5)
         return img, data
 
     def init_bounding_box(self, frame, bounding_box):
