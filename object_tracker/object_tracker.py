@@ -14,7 +14,7 @@ class ObjectTracker:
 
     MAX_COUNTER = 10
 
-    def __init__(self, run_optical_flow=True, tracker_run_iter=3):
+    def __init__(self, run_optical_flow=False, tracker_run_iter=3):
         self.run_optical_flow = run_optical_flow
         self.tracker_run_iter = tracker_run_iter
         self.tracker_counter = 0
@@ -54,7 +54,7 @@ class ObjectTracker:
             h = max_y - min_y
             self.match.roi = min_x, min_y, w, h
         flag = 1 if flag == "normal" else 0
-        data = [min_x, min_y, max_x, max_y, flag, score]
+        data = [min_x, min_y, max_x-min_x, max_y-min_y, flag, score]
         #cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 5)
         return img, data
 

@@ -21,7 +21,7 @@ class Matcher:
                 minEigThreshold=5e-4,
             )
 
-    def __init__(self, use_orb=True, params=Params()):
+    def __init__(self, use_orb=False, params=Params()):
         self.orb = cv2.ORB_create()
         self.use_orb = use_orb
         self._params = params
