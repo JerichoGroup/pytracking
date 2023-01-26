@@ -1,4 +1,5 @@
 import cv2
+import logging
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ class Matcher:
                 minEigThreshold=5e-4,
             )
 
-    def __init__(self, use_orb=False, params=Params()):
+    def __init__(self, use_orb=True, params=Params()):
         self.orb = cv2.ORB_create()
         self.use_orb = use_orb
         self._params = params
@@ -43,7 +44,7 @@ class Matcher:
             self.features = features
 
     def _calc_orb(self, image):
-        # start_time = time.time()
+        start_time = time.time()
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
         kp2, des2 = self.orb.detectAndCompute(image, None)
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
@@ -55,15 +56,15 @@ class Matcher:
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
         if len(list_kp1) < self._params.min_points_for_find_homography:
             return None, None
-        # print("orb time")
-        # print(time.time() - start_time)
+        logging.debug("orb time")
+        logging.debug(time.time() - start_time)
         M, mask = cv2.findHomography(
             np.squeeze(list_kp1), np.squeeze(list_kp2), cv2.RANSAC, 5.0
         )
         return M, mask
 
     def _calc_optical_flow(self, p0, image):
-        # start_time = time.time()
+        start_time = time.time()
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
             self._prev_image, image, p0, None, **self._params.tracking_params
         )
@@ -77,8 +78,8 @@ class Matcher:
             ).astype("uint8")
         else:
             st = np.squeeze(st1)
-        # print("optical flow time")
-        # print(time.time() - start_time)
+        logging.debug("optical flow time")
+        logging.debug(time.time() - start_time)
         return st, p1
 
     def __call__(self, image):
@@ -94,12 +95,12 @@ class Matcher:
         self._find_features(image)
         self._prev_image = image
         if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
-            print("failed to match features with optical flow")
+            logging.info("failed to match features with optical flow")
             if self.use_orb is True:
-                print("trying orb")
+                logging.info("trying orb")
                 M, mask = self._calc_orb(image)
                 if M is None:
-                    print("failed to match features with orb")
+                    logging.info("failed to match features with orb")
                     return None
             else:
                 return None
@@ -108,8 +109,8 @@ class Matcher:
                 np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
             )
         if M is None and self.use_orb is True:
-            print("falid to calc homography with optical flow")
-            print("trying orb")
+            logging.info("falid to calc homography with optical flow")
+            loggin.info("trying orb")
             M, mask = self._calc_orb(image)
         if M is None:
             return None
