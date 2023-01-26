@@ -31,12 +31,19 @@ class Matcher:
         self._frame_num = 0
 
     def init(self, image, roi):
+        """
+        init the optical flow tracker
+        """
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self._prev_image = gray
         self.roi = roi
         self._find_features(gray)
 
     def _find_features(self, img):
+        """
+        find features in the image if there is no features
+        set self.featurs to None
+        """
         features = cv2.goodFeaturesToTrack(img, **self._params.detection_params)
         if features is None:
             self.features = []
@@ -44,6 +51,9 @@ class Matcher:
             self.features = features
 
     def _calc_orb(self, image):
+        """
+        use orb to match between features
+        """
         start_time = time.time()
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
         kp2, des2 = self.orb.detectAndCompute(image, None)
@@ -64,6 +74,9 @@ class Matcher:
         return M, mask
 
     def _calc_optical_flow(self, p0, image):
+        """
+        use optical flow to calc features and then calc homography
+        """
         start_time = time.time()
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
             self._prev_image, image, p0, None, **self._params.tracking_params
@@ -83,6 +96,10 @@ class Matcher:
         return st, p1
 
     def __call__(self, image):
+        """
+        this method run on each frame calc optical flow, find homography
+        and return new bounding box
+        """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
 
