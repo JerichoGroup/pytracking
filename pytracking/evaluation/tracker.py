@@ -299,9 +299,6 @@ class Tracker:
         if frame is None:
             return
 
-        frame_disp = frame.copy()
-
-        # Draw box
         out = self.tracker.track(frame)
         state = [int(s) for s in out['target_bbox'][1]]
         self.output_boxes.append(state)

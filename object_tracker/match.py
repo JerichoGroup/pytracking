@@ -1,8 +1,5 @@
 import cv2
-import time
 import numpy as np
-import matplotlib.pyplot as plt
-
 
 class Matcher:
     class Params:
@@ -43,11 +40,10 @@ class Matcher:
             self.features = features
 
     def _calc_orb(self, image):
-        # start_time = time.time()
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
         kp2, des2 = self.orb.detectAndCompute(image, None)
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        matches = bf.match(des1, des2)
+        matches = bf._match(des1, des2)
         matches = sorted(matches, key=lambda x: x.distance)
         matches = matches[: self._params.num_orb_features]
 
@@ -55,15 +51,12 @@ class Matcher:
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
         if len(list_kp1) < self._params.min_points_for_find_homography:
             return None, None
-        # print("orb time")
-        # print(time.time() - start_time)
         M, mask = cv2.findHomography(
             np.squeeze(list_kp1), np.squeeze(list_kp2), cv2.RANSAC, 5.0
         )
         return M, mask
 
     def _calc_optical_flow(self, p0, image):
-        # start_time = time.time()
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
             self._prev_image, image, p0, None, **self._params.tracking_params
         )
@@ -77,8 +70,6 @@ class Matcher:
             ).astype("uint8")
         else:
             st = np.squeeze(st1)
-        # print("optical flow time")
-        # print(time.time() - start_time)
         return st, p1
 
     def __call__(self, image):
@@ -108,7 +99,7 @@ class Matcher:
                 np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
             )
         if M is None and self.use_orb is True:
-            print("falid to calc homography with optical flow")
+            print("failed to calculate homography with optical flow")
             print("trying orb")
             M, mask = self._calc_orb(image)
         if M is None:
