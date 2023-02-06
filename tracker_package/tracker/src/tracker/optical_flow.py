@@ -34,39 +34,29 @@ class VisualTrackerKLT:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self._prev_pyr = gray
         self.roi = roi
-        self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
+        self.features = {}
+        #self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
 
-    def __call__(self, image):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        p0 = np.squeeze(self.features)
+    def __call__(self, features):
+        current_features = {}
+        for feat in features.features:
+            current_features[feat.id] = [feat.x, feat.y]
 
-        if len(p0) == 0:
-            return [], [], []
-
-        curr_pyr = gray
-
-        p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
-            self._prev_pyr, curr_pyr, p0, None, **self._params.tracking_params
-        )
-        if self._params.bidirectional_enable:
-            p2, st2, err2 = cv2.calcOpticalFlowPyrLK(
-                curr_pyr, self._prev_pyr, p1, None, **self._params.tracking_params
-            )
-            proj_err = np.linalg.norm(p2 - p0, axis=1)
-            st = np.squeeze(st1 * st2) * (
-                proj_err < self._params.bidirectional_thresh
-            ).astype("uint8")
-        else:
-            st = np.squeeze(st1)
-
-        self.features = cv2.goodFeaturesToTrack(gray, **self._params.detection_params)
-        self._prev_pyr = curr_pyr
-        if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
+        keys = current_features.keys() & self.features.keys()
+        p1 = []
+        p2 = []
+        for key in keys:
+            p1.append(self.features[key])
+            p2.append(current_features[key])
+        print(len(keys))
+        if len(keys) < 4:
+            self.features = current_features
             return None
-        M, mask = cv2.findHomography(
-            np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
-        )
+        p1 = np.array(p1)
+        p2 = np.array(p2)
+        M, mask = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
         if M is None:
+            self.features = current_features
             return None
         points = []
         point1 = [self.roi[0], self.roi[1]]
@@ -84,4 +74,5 @@ class VisualTrackerKLT:
         w = max_x - min_x
         h = max_y - min_y
         self.roi = [min_x, min_y, w, h]
+        self.features = current_features
         return min_x, min_y, max_x, max_y

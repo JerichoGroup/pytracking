@@ -7,7 +7,9 @@ import sys
 import pickle
 import struct
 import torch
+import message_filters
 
+from vilib_msgs.msg import Features
 from ltr.data.bounding_box_utils import masks_to_bboxes
 from pytracking.evaluation import Tracker
 from sensor_msgs.msg import Image
@@ -25,21 +27,22 @@ class ObjectTracker:
             self.clientsocket.connect((self.ip, self.port))
         except Exception as e:
             self.clientsocket = None
-        self.run_optical_flow = bool(
-            int(rospy.get_param("tracker/run_optical_flow", 0))
-        )
-        self.tracker_run_iter = int(rospy.get_param("tracker/track_run_iter", 10))
+        self.run_optical_flow = True
+        self.tracker_run_iter = 2
         self.init_timeout = int(rospy.get_param("tracker/init_timeout", 20))
         self.tracker_counter = 0
         rospy.init_node("tracker")
-        rospy.Subscriber("image", Image, self.image_callback, queue_size=1)
+        self.image = message_filters.Subscriber("/vilib_tracker/debug_image", Image)
+        self.features = message_filters.Subscriber("/features", Features)
+        ts = message_filters.TimeSynchronizer([self.image, self.features], 1)
+        ts.registerCallback(self.image_callback)
         self.bb_pub = rospy.Publisher("bounding_box", Float32MultiArray, queue_size=10)
         self.tracker = Tracker("dimp", "dimp18")
         self.init = False
         self.of = VisualTrackerKLT()
         self.bridge = CvBridge()
 
-    def image_callback(self, image_msg):
+    def image_callback(self, image_msg, features):
         if self.clientsocket is None:
             self.reconnect_to_socket()
         if self.tracker_counter > 100:
@@ -55,7 +58,7 @@ class ObjectTracker:
                 self.of.init(orig, bounding_box)
         optical_flow_output = None
         if self.run_optical_flow:
-            optical_flow_output = self.of(orig)
+            optical_flow_output = self.of(features)
             if optical_flow_output is not None:
                 min_x, min_y, max_x, max_y = optical_flow_output
                 min_x = int(min_x)
@@ -64,6 +67,7 @@ class ObjectTracker:
                 max_y = int(max_y)
                 flag = "normal"
                 score = 1  # TODO THINK
+                print("use optical flow")
             else:
                 rospy.loginfo("failed to match features with optical flow")
         if (
@@ -74,6 +78,7 @@ class ObjectTracker:
             w = max_x - min_x
             h = max_y - min_y
             self.of.roi = min_x, min_y, w, h
+            print("use network")
         bb_msg = Float32MultiArray()
         flag = 1 if flag == "normal" else 0
         bb_msg.data = [min_x, min_y, max_x-min_x, max_y-min_y, flag, score]
