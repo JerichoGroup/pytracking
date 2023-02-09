@@ -1,3 +1,4 @@
+import logging
 import cv2
 import numpy as np
 
@@ -85,12 +86,12 @@ class Matcher:
         self._find_features(image)
         self._prev_image = image
         if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
-            print("failed to match features with optical flow")
+            logging.error("failed to match features with optical flow")
             if self.use_orb is True:
-                print("trying orb")
+                logging.info("trying orb")
                 M, mask = self._calc_orb(image)
                 if M is None:
-                    print("failed to match features with orb")
+                    logging.error("failed to match features with orb")
                     return None
             else:
                 return None
@@ -99,8 +100,8 @@ class Matcher:
                 np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
             )
         if M is None and self.use_orb is True:
-            print("failed to calculate homography with optical flow")
-            print("trying orb")
+            logging.error("failed to calculate homography with optical flow")
+            logging.info("trying orb")
             M, mask = self._calc_orb(image)
         if M is None:
             return None

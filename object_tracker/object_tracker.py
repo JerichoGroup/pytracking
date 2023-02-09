@@ -1,6 +1,6 @@
+import logging
 from pytracking.evaluation import Tracker
 from object_tracker.match import Matcher
-
 
 class ObjectTracker:
 
@@ -33,7 +33,7 @@ class ObjectTracker:
                 flag = "normal"
                 score = 1
             else:
-                print("failed to match features")
+                logging.error("failed to match features")
         if (
             self._tracker_counter % self._tracker_run_iter == 0
             or optical_flow_output is None
@@ -49,6 +49,7 @@ class ObjectTracker:
 
     def init_bounding_box(self, frame, bounding_box):
         self._tracker.init_tracker(frame, bounding_box)
+        logging.info("finish init tracker bounding box")
         self.init = True
         if self._run_optical_flow:
             self._match.init(frame, bounding_box)
