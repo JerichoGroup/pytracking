@@ -44,7 +44,7 @@ class Matcher:
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
         kp2, des2 = self.orb.detectAndCompute(image, None)
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        matches = bf._match(des1, des2)
+        matches = bf.match(des1, des2)
         matches = sorted(matches, key=lambda x: x.distance)
         matches = matches[: self._params.num_orb_features]
 

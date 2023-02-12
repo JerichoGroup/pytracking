@@ -6,12 +6,12 @@ class ObjectTracker:
 
     MAX_COUNTER = 10
 
-    def __init__(self, run_optical_flow=False, tracker_run_iter=3):
+    def __init__(self, run_optical_flow=False, use_orb=False, tracker_run_iter=3):
         self._run_optical_flow = run_optical_flow
         self._tracker_run_iter = tracker_run_iter
         self._tracker_counter = 0
         self._tracker = Tracker("dimp", "dimp18")
-        self._match = Matcher()
+        self._match = Matcher(use_orb)
         self.init = False
 
     def run_frame(self, img):
