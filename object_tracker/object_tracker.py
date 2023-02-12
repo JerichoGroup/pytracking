@@ -2,6 +2,7 @@ import logging
 from pytracking.evaluation import Tracker
 from object_tracker.match import Matcher
 
+
 class ObjectTracker:
 
     MAX_COUNTER = 10
@@ -44,7 +45,7 @@ class ObjectTracker:
             self._match.roi = min_x, min_y, w, h
         flag = 1 if flag == "normal" else 0
         # x, y, w, h, was_frame_situation_algo_wise_was_normal, score
-        data = [min_x, min_y, max_x-min_x, max_y-min_y, flag, score]
+        data = [min_x, min_y, max_x - min_x, max_y - min_y, flag, score]
         return img, data
 
     def init_bounding_box(self, frame, bounding_box):

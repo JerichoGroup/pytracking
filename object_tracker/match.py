@@ -2,6 +2,7 @@ import logging
 import cv2
 import numpy as np
 
+
 class Matcher:
     class Params:
         def __init__(self):
@@ -71,40 +72,15 @@ class Matcher:
             ).astype("uint8")
         else:
             st = np.squeeze(st1)
-        return st, p1
-
-    def __call__(self, image):
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        p0 = np.squeeze(self.features)
-
-        if len(p0) == 0:
-            self._find_features(image)
-            self._prev_image = image
-            return None
-
-        st, p1 = self._calc_optical_flow(p0, image)
-        self._find_features(image)
-        self._prev_image = image
         if len(np.squeeze(p0[st > 0])) < self._params.min_points_for_find_homography:
             logging.error("failed to match features with optical flow")
-            if self.use_orb is True:
-                logging.info("trying orb")
-                M, mask = self._calc_orb(image)
-                if M is None:
-                    logging.error("failed to match features with orb")
-                    return None
-            else:
-                return None
-        else:
-            M, mask = cv2.findHomography(
-                np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
-            )
-        if M is None and self.use_orb is True:
-            logging.error("failed to calculate homography with optical flow")
-            logging.info("trying orb")
-            M, mask = self._calc_orb(image)
-        if M is None:
-            return None
+            return None, None
+        M, mask = cv2.findHomography(
+            np.squeeze(p0[st > 0]), np.squeeze(p1[st > 0]), cv2.RANSAC, 5.0
+        )
+        return M, mask
+
+    def _calc_new_roi(self, M):
         points = []
         point1 = [self.roi[0], self.roi[1]]
         point2 = [self.roi[0] + self.roi[2], self.roi[1]]
@@ -122,3 +98,26 @@ class Matcher:
         h = max_y - min_y
         self.roi = [min_x, min_y, w, h]
         return min_x, min_y, max_x, max_y
+
+    def __call__(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        p0 = np.squeeze(self.features)
+
+        if len(p0) == 0:
+            self._find_features(image)
+            self._prev_image = image
+            return None
+
+        M, mask = self._calc_optical_flow(p0, image)
+        self._find_features(image)
+        self._prev_image = image
+        if M is None:
+            if self.use_orb is True:
+                logging.info("trying orb")
+                M, mask = self._calc_orb(image)
+                if M is None:
+                    logging.error("failed to match features with orb")
+                    return None
+            else:
+                return None
+        return self._calc_new_roi(M)
