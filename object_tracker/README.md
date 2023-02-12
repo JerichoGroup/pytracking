@@ -20,3 +20,8 @@ tracker_output: [top_left_x, top_left_y, box_width, box_height, was_frame_algori
 ```zsh
 coverage run -m pytest ./tests/test.py
 ```
+
+### Patch
+```zsh
+patch ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py faster_import_patch
+```
