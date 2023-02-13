@@ -17,6 +17,29 @@ from object_tracker.object_tracker import ObjectTracker
     [(VIDEO_PATH, False, False), (VIDEO_PATH, True, False), (VIDEO_PATH, True, True)],
 )
 def test_run_on_frame(video_path, run_optical_flow, use_orb, num_frame_run=20):
+    """
+    this test run a video on the tracker
+    """
+    cap = cv2.VideoCapture(video_path)
+    tracker = ObjectTracker(run_optical_flow, use_orb)
+    ret, frame = cap.read()
+    x, y, w, h = [100, 100, 20, 20]
+    tracker.init_bounding_box(frame, [x, y, w, h])
+    for i in range(num_frame_run):
+        ret, frame = cap.read()
+        image, data = tracker.run_frame(frame)
+
+
+@pytest.mark.parametrize(
+    "video_path, run_optical_flow, use_orb",
+    [(VIDEO_PATH, True, True)],
+)
+def test_run_on_frame_using_orb(
+    video_path, run_optical_flow, use_orb, num_frame_run=20
+):
+    """
+    this test make the optical flow to fail to trigger the use of orb detector
+    """
     cap = cv2.VideoCapture(video_path)
     tracker = ObjectTracker(run_optical_flow, use_orb)
     ret, frame = cap.read()
@@ -27,4 +50,22 @@ def test_run_on_frame(video_path, run_optical_flow, use_orb, num_frame_run=20):
         if i == 1 and use_orb == True:
             # set a random frame to enable orb detector
             frame = np.random.randint(255, size=frame.shape, dtype=np.uint8)
+        image, data = tracker.run_frame(frame)
+
+
+@pytest.mark.parametrize(
+    "video_path, run_optical_flow, use_orb",
+    [(VIDEO_PATH, False, False), (VIDEO_PATH, True, False), (VIDEO_PATH, True, True)],
+)
+def test_run_on_random_frame(video_path, run_optical_flow, use_orb, num_frame_run=20):
+    """
+    this test run a video on the tracker
+    """
+    cap = cv2.VideoCapture(video_path)
+    tracker = ObjectTracker(run_optical_flow, use_orb)
+    ret, frame = cap.read()
+    x, y, w, h = [100, 100, 20, 20]
+    tracker.init_bounding_box(frame, [x, y, w, h])
+    for i in range(num_frame_run):
+        frame = np.random.randint(255, size=frame.shape, dtype=np.uint8)
         image, data = tracker.run_frame(frame)

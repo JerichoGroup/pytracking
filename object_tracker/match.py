@@ -1,6 +1,9 @@
 import logging
 import cv2
+import collections
 import numpy as np
+
+Roi = collections.namedtuple("Roi", ["min_x", "min_y", "w", "h"])
 
 
 class Matcher:
@@ -26,30 +29,34 @@ class Matcher:
         self._params = params
         self._prev_image = None
         self.features = None
-        self._frame_num = 0
 
     def init(self, image, roi):
         """
-        this method set a start roi for the tracker
+        this method sets a start roi for the tracker
         """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self._prev_image = image
-        self.roi = roi
+        self.roi = Roi(min_x=roi[0], min_y=roi[1], w=roi[2], h=roi[3])
         self._find_features(image)
+        logging.info("finish init matcher")
+
+    def set_new_roi(self, roi):
+        self.roi = Roi(min_x=roi[0], min_y=roi[1], w=roi[2], h=roi[3])
 
     def _find_features(self, image):
         """
-        this method find new features from the give frame
+        this method finds new features from the give frame
         """
         features = cv2.goodFeaturesToTrack(image, **self._params.detection_params)
         if features is None:
+            logging.error("failed to match features using goodFeaturesToTrack")
             self.features = []
         else:
             self.features = features
 
     def _calc_orb(self, image):
         """
-        this method calculate a homography matrix using BFMatcher
+        this method calculates a homography matrix using BFMatcher
         return M(homography matrix), mask
         """
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
@@ -70,7 +77,7 @@ class Matcher:
 
     def _calc_optical_flow(self, p0, image):
         """
-        this method calculate a homography matrix using OpticalFlowPyrLK
+        this method calculates a homography matrix using OpticalFlowPyrLK
         return M(homography matrix), mask
         """
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
@@ -96,14 +103,14 @@ class Matcher:
 
     def _calc_new_roi(self, M):
         """
-        this method calculate a new roi using the M(homography matrix).
+        this method calculates a new roi using the M(homography matrix).
         return: min_x, min_y, max_x, max_y
         """
         points = []
-        point1 = [self.roi[0], self.roi[1]]
-        point2 = [self.roi[0] + self.roi[2], self.roi[1]]
-        point3 = [self.roi[0] + self.roi[2], self.roi[1] + self.roi[3]]
-        point4 = [self.roi[0], self.roi[1] + self.roi[3]]
+        point1 = [self.roi.min_x, self.roi.min_y]
+        point2 = [self.roi.min_x + self.roi.w, self.roi.min_y]
+        point3 = [self.roi.min_x + self.roi.w, self.roi.min_y + self.roi.h]
+        point4 = [self.roi.min_x, self.roi.min_y + self.roi.h]
         coord_of_roi = np.array([point1, point2, point3, point4]).reshape(-1, 1, 2)
         transform_points = cv2.perspectiveTransform(
             coord_of_roi.astype(np.float), M
@@ -114,12 +121,12 @@ class Matcher:
         max_y = np.max(transform_points, axis=0)[1]
         w = max_x - min_x
         h = max_y - min_y
-        self.roi = [min_x, min_y, w, h]
+        self.roi = Roi(min_x=min_x, min_y=min_y, w=w, h=h)
         return min_x, min_y, max_x, max_y
 
     def __call__(self, image):
         """
-        this method run optical flow and orb(if necessary) on the image
+        this method runs optical flow and orb(if necessary) on the image
         return: min_x, min_y, max_x, max_y
         """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

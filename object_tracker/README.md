@@ -16,12 +16,12 @@ image: a raw image (should be uint8 image, color format: bgr)
 
 tracker_output: [top_left_x, top_left_y, box_width, box_height, was_frame_algorithmic_situation_normal, output_score]
 
-### Tests
+### Run Tests + Coverage
 ```zsh
 coverage run -m pytest ./tests/test.py
 ```
 
-### Patch
+### patch PreciseRoIPooling for faster loading
 ```zsh
 patch ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py faster_import_patch
 ```
