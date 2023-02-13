@@ -15,7 +15,7 @@
 +            root_dir = pjoin(dirname(__file__), 'src')
 +
 +            from torch.utils.cpp_extension import _import_module_from_library
-+            _prroi_pooling = _import_module_from_library("_prroi_pooling", "/home/jetson/.cache/torch_extensions/_prroi_pooling", True)
++            _prroi_pooling = _import_module_from_library("_prroi_pooling", "/root/.cache/torch_extensions/_prroi_pooling", True)
 +        except ImportError:
 +            raise ImportError('Can not compile Precise RoI Pooling library.')
 +
