@@ -29,19 +29,29 @@ class Matcher:
         self._frame_num = 0
 
     def init(self, image, roi):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        self._prev_image = gray
+        """
+        this method set a start roi for the tracker
+        """
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        self._prev_image = image
         self.roi = roi
-        self._find_features(gray)
+        self._find_features(image)
 
-    def _find_features(self, img):
-        features = cv2.goodFeaturesToTrack(img, **self._params.detection_params)
+    def _find_features(self, image):
+        """
+        this method find new features from the give frame
+        """
+        features = cv2.goodFeaturesToTrack(image, **self._params.detection_params)
         if features is None:
             self.features = []
         else:
             self.features = features
 
     def _calc_orb(self, image):
+        """
+        this method calculate a homography matrix using BFMatcher
+        return M(homography matrix), mask
+        """
         kp1, des1 = self.orb.detectAndCompute(self._prev_image, None)
         kp2, des2 = self.orb.detectAndCompute(image, None)
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
@@ -59,6 +69,10 @@ class Matcher:
         return M, mask
 
     def _calc_optical_flow(self, p0, image):
+        """
+        this method calculate a homography matrix using OpticalFlowPyrLK
+        return M(homography matrix), mask
+        """
         p1, st1, err1 = cv2.calcOpticalFlowPyrLK(
             self._prev_image, image, p0, None, **self._params.tracking_params
         )
@@ -81,6 +95,10 @@ class Matcher:
         return M, mask
 
     def _calc_new_roi(self, M):
+        """
+        this method calculate a new roi using the M(homography matrix).
+        return: min_x, min_y, max_x, max_y
+        """
         points = []
         point1 = [self.roi[0], self.roi[1]]
         point2 = [self.roi[0] + self.roi[2], self.roi[1]]
@@ -100,6 +118,10 @@ class Matcher:
         return min_x, min_y, max_x, max_y
 
     def __call__(self, image):
+        """
+        this method run optical flow and orb(if necessary) on the image
+        return: min_x, min_y, max_x, max_y
+        """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
 
