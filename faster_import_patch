@@ -1,9 +1,19 @@
---- ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py	2023-02-12 08:46:40.133064024 -0500
-+++ ./functional_update.py	2023-02-12 08:51:54.385891188 -0500
-@@ -26,6 +26,21 @@
-             from os.path import join as pjoin, dirname
-             from torch.utils.cpp_extension import load as load_extension
-             root_dir = pjoin(dirname(__file__), 'src')
+--- /pytracking/ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py	2023-01-26 14:07:52.000000000 +0000
++++ ./functional_update.py	2023-02-13 11:55:36.961794456 +0000
+@@ -17,11 +17,26 @@
+ 
+ _prroi_pooling = None
+ 
+-
+ def _import_prroi_pooling():
+     global _prroi_pooling
+ 
+     if _prroi_pooling is None:
++        try:
++            from os.path import join as pjoin, dirname
++            from torch.utils.cpp_extension import load as load_extension
++            root_dir = pjoin(dirname(__file__), 'src')
++
 +            from torch.utils.cpp_extension import _import_module_from_library
 +            _prroi_pooling = _import_module_from_library("_prroi_pooling", "/home/jetson/.cache/torch_extensions/_prroi_pooling", True)
 +        except ImportError:
@@ -15,23 +25,6 @@
 +    global _prroi_pooling
 +
 +    if _prroi_pooling is None:
-+        try:
-+            from os.path import join as pjoin, dirname
-+            from torch.utils.cpp_extension import load as load_extension
-+            root_dir = pjoin(dirname(__file__), 'src')
- 
-             _prroi_pooling = load_extension(
-                 '_prroi_pooling',
-@@ -37,7 +52,6 @@
- 
-     return _prroi_pooling
- 
--
- class PrRoIPool2DFunction(ag.Function):
-     @staticmethod
-     def forward(ctx, features, rois, pooled_height, pooled_width, spatial_scale):
-@@ -83,4 +97,3 @@
- 
- prroi_pool2d = PrRoIPool2DFunction.apply
- 
--
+         try:
+             from os.path import join as pjoin, dirname
+             from torch.utils.cpp_extension import load as load_extension
