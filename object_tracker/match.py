@@ -106,12 +106,11 @@ class Matcher:
         this method calculates a new roi using the M(homography matrix).
         return: min_x, min_y, max_x, max_y
         """
-        points = []
-        point1 = [self.roi.min_x, self.roi.min_y]
-        point2 = [self.roi.min_x + self.roi.w, self.roi.min_y]
-        point3 = [self.roi.min_x + self.roi.w, self.roi.min_y + self.roi.h]
-        point4 = [self.roi.min_x, self.roi.min_y + self.roi.h]
-        coord_of_roi = np.array([point1, point2, point3, point4]).reshape(-1, 1, 2)
+        top_left = [self.roi.min_x, self.roi.min_y]
+        top_right = [self.roi.min_x + self.roi.w, self.roi.min_y]
+        bottom_right = [self.roi.min_x + self.roi.w, self.roi.min_y + self.roi.h]
+        bottom_left = [self.roi.min_x, self.roi.min_y + self.roi.h]
+        coord_of_roi = np.array([top_left, top_right, bottom_right, bottom_left]).reshape(-1, 1, 2)
         transform_points = cv2.perspectiveTransform(
             coord_of_roi.astype(np.float), M
         ).reshape(-1, 2)

@@ -2,6 +2,8 @@ import logging
 from pytracking.evaluation import Tracker
 from object_tracker.match import Matcher
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 class ObjectTracker:
 
