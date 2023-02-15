@@ -131,7 +131,7 @@ class Matcher:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
 
-        if len(p0) == 0:
+        if len(p0) == 0 or len(p0.shape) < 2:
             self._find_features(image)
             self._prev_image = image
             return None
