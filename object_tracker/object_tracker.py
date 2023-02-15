@@ -36,7 +36,7 @@ class ObjectTracker:
                 flag = "normal"
                 score = 1
             else:
-                logging.error("failed to match features")
+                logging.error("failed to match features with matcher")
         if (
             self._tracker_counter % self._tracker_run_iter == 0
             or optical_flow_output is None
