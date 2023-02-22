@@ -135,8 +135,14 @@ class Matcher:
             self._find_features(image)
             self._prev_image = image
             return None
-
-        M, mask = self._calc_optical_flow(p0, image)
+        try:
+            M, mask = self._calc_optical_flow(p0, image)
+        except Exception as e:
+            logging.error(e)
+            logging.error("optical flow falied")
+            self._find_features(image)
+            self._prev_image = image
+            return None
         self._find_features(image)
         self._prev_image = image
         if M is None:
