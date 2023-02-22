@@ -26,7 +26,11 @@ class ObjectTracker:
         orig = img.copy()
         optical_flow_output = None
         if self._run_optical_flow:
-            optical_flow_output = self._match(orig)
+            try:
+                optical_flow_output = self._match(orig)
+            except Exception as e:
+                logging.error(e)
+                logging.error("match raise exception")
             if optical_flow_output is not None:
                 min_x, min_y, max_x, max_y = optical_flow_output
                 min_x = int(min_x)

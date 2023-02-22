@@ -9,7 +9,7 @@ Roi = collections.namedtuple("Roi", ["min_x", "min_y", "w", "h"])
 class Matcher:
     class Params:
         def __init__(self):
-            self.num_orb_features = 20
+            self.num_orb_features = 100
             self.bidirectional_enable = True
             self.bidirectional_thresh = 2.0
             self.min_points_for_find_homography = 10
