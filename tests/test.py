@@ -1,7 +1,10 @@
 import pytest
 import cv2
 import sys
+
 import numpy as np
+
+from mock import patch
 
 PYTRACKING_PATH = "/home/jetson/ros/pytracking/"
 
@@ -10,7 +13,31 @@ sys.path.append(PYTRACKING_PATH)
 
 
 from object_tracker.object_tracker import ObjectTracker
+from object_tracker.match import Matcher
 
+
+@pytest.mark.parametrize(
+    "video_path, run_optical_flow, use_orb",
+    [(VIDEO_PATH, True, True)],
+)
+def test_raise_exception_in_matcher(
+    video_path, run_optical_flow, use_orb, num_frame_run=3
+):
+    """
+    this test run a video on the tracker
+    """
+    with patch(
+        "object_tracker.match.Matcher.__call__",
+        side_effect=Exception("optical flow falied"),
+    ) as mocked_object:
+        cap = cv2.VideoCapture(video_path)
+        tracker = ObjectTracker(run_optical_flow, use_orb)
+        ret, frame = cap.read()
+        x, y, w, h = [100, 100, 20, 20]
+        tracker.init_bounding_box(frame, [x, y, w, h])
+        for i in range(num_frame_run):
+            ret, frame = cap.read()
+            image, data = tracker.run_frame(frame)
 
 @pytest.mark.parametrize(
     "video_path, run_optical_flow, use_orb",
