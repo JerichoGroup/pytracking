@@ -19,6 +19,8 @@ tracker_output: [top_left_x, top_left_y, box_width, box_height, was_frame_algori
 ### Run Tests + Coverage
 ```zsh
 coverage run -m pytest ./tests/test.py
+with logging:
+pytest ./tests/test.py -o log_cli=true
 ```
 
 ### patch PreciseRoIPooling for faster loading

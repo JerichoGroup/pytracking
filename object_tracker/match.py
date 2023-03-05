@@ -110,7 +110,9 @@ class Matcher:
         top_right = [self.roi.min_x + self.roi.w, self.roi.min_y]
         bottom_right = [self.roi.min_x + self.roi.w, self.roi.min_y + self.roi.h]
         bottom_left = [self.roi.min_x, self.roi.min_y + self.roi.h]
-        coord_of_roi = np.array([top_left, top_right, bottom_right, bottom_left]).reshape(-1, 1, 2)
+        coord_of_roi = np.array(
+            [top_left, top_right, bottom_right, bottom_left]
+        ).reshape(-1, 1, 2)
         transform_points = cv2.perspectiveTransform(
             coord_of_roi.astype(np.float), M
         ).reshape(-1, 2)
@@ -123,6 +125,49 @@ class Matcher:
         self.roi = Roi(min_x=min_x, min_y=min_y, w=w, h=h)
         return min_x, min_y, max_x, max_y
 
+    def _run_orb(self, image):
+        """
+        this method runs orb
+        """
+        M = None
+        logging.info("trying orb")
+        M, mask = self._calc_orb(image)
+        if M is None:
+            logging.error("failed to match features with orb")
+        return M
+
+    def _run_optical_flow(self, image, p0):
+        M = None
+        try:
+            M, mask = self._calc_optical_flow(p0, image)
+        except Exception as e:
+            logging.error(e)
+            logging.error("optical flow raise exception")
+        return M
+
+    def _set_new_features(self, image):
+        """
+        the method set a new features from the current frame 
+        and set the current image as the prev image
+        """
+        self._find_features(image)
+        self._prev_image = image
+
+    def _run_orb_set_new_features(self, image):
+        """
+        this method runs orb (if the flag is set), after this the method
+        set a new features from the current frame, and set the current image
+        as the prev image
+        """
+        M = None
+        try:
+            M = self._run_orb(image)
+        except Exception as e:
+            logging.error(e)
+            logging.error("orb raise exception")
+        self._set_new_features(image)
+        return M
+
     def __call__(self, image):
         """
         this method runs optical flow and orb(if necessary) on the image
@@ -130,28 +175,21 @@ class Matcher:
         """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         p0 = np.squeeze(self.features)
-
+        M = None
         if len(p0) == 0 or len(p0.shape) < 2:
-            self._find_features(image)
-            self._prev_image = image
-            return None
-        try:
-            M, mask = self._calc_optical_flow(p0, image)
-        except Exception as e:
-            logging.error(e)
-            logging.error("optical flow falied")
-            self._find_features(image)
-            self._prev_image = image
-            return None
-        self._find_features(image)
-        self._prev_image = image
-        if M is None:
             if self.use_orb is True:
-                logging.info("trying orb")
-                M, mask = self._calc_orb(image)
+                M = self._run_orb_set_new_features(image)
                 if M is None:
-                    logging.error("failed to match features with orb")
                     return None
+                return self._calc_new_roi(M)
             else:
+                self._set_new_features(image)
                 return None
+        M = self._run_optical_flow(image, p0)
+        if self.use_orb is True and M is None:
+            M = self._run_orb_set_new_features(image)
+        else:
+            self._set_new_features(image)
+        if M is None:
+            return None
         return self._calc_new_roi(M)
