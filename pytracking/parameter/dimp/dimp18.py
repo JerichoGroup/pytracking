@@ -17,7 +17,7 @@ def parameters():
     params.sample_memory_size = 50
     params.learning_rate = 0.01
     params.init_samples_minimum_weight = 0.25
-    params.train_skipping = 10
+    params.train_skipping = 10 # 20
 
     # Net optimization params
     params.update_classifier = True
@@ -37,7 +37,7 @@ def parameters():
                            'dropout': (2, 0.2)}
 
     params.augmentation_expansion_factor = 2
-    params.random_shift_factor = 1 / 3
+    params.random_shift_factor = 2 / 3 # 1 / 3
 
     # Advanced localization parameters
     params.advanced_localization = True
@@ -53,9 +53,9 @@ def parameters():
     params.iounet_augmentation = False
     params.iounet_use_log_scale = True
     params.iounet_k = 3
-    params.num_init_random_boxes = 9
-    params.box_jitter_pos = 0.1
-    params.box_jitter_sz = 0.5
+    params.num_init_random_boxes = 12 # 9
+    params.box_jitter_pos = 0.3 # 0.1
+    params.box_jitter_sz = 0.7 # 0.5
     params.maximal_aspect_ratio = 6
     params.box_refinement_iter = 5
     params.box_refinement_step_length = 1

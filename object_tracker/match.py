@@ -9,17 +9,17 @@ Roi = collections.namedtuple("Roi", ["min_x", "min_y", "w", "h"])
 class Matcher:
     class Params:
         def __init__(self):
-            self.num_orb_features = 100
+            self.num_orb_features = 200
             self.bidirectional_enable = True
-            self.bidirectional_thresh = 2.0
-            self.min_points_for_find_homography = 10
+            self.bidirectional_thresh = 5.0
+            self.min_points_for_find_homography = 40
             self.detection_params = dict(
-                maxCorners=500, qualityLevel=0.01, minDistance=21, blockSize=7
+                maxCorners=500, qualityLevel=0.01, minDistance=17, blockSize=7
             )
             self.tracking_params = dict(
                 winSize=(15, 15),
-                maxLevel=2,
-                criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03),
+                maxLevel=5,
+                criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.003),
                 minEigThreshold=5e-4,
             )
 
