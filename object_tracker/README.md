@@ -25,5 +25,6 @@ pytest ./tests/test.py -o log_cli=true
 
 ### patch PreciseRoIPooling for faster loading
 ```zsh
+this patch used for prevent pytorch for compile PreciseRoIPooling again
 patch ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py faster_import_patch
 ```

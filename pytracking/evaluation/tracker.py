@@ -257,57 +257,6 @@ class Tracker:
 
         return output
         
-
-    def init_tracker(self, frame, optional_box, debug=None, visdom_info=None, save_results=False):
-        params = self.get_parameters()
-
-        debug_ = debug
-        if debug is None:
-            debug_ = getattr(params, 'debug', 0)
-        params.debug = debug_
-
-        params.tracker_name = self.name
-        params.param_name = self.parameter_name
-        self._init_visdom(visdom_info, debug_)
-
-        multiobj_mode = getattr(params, 'multiobj_mode', getattr(self.tracker_class, 'multiobj_mode', 'default'))
-
-        if multiobj_mode == 'default':
-            self.tracker = self.create_tracker(params)
-            if hasattr(tracker, 'initialize_features'):
-                self.tracker.initialize_features()
-
-        elif multiobj_mode == 'parallel':
-            self.tracker = MultiObjectWrapper(self.tracker_class, params, self.visdom, fast_load=True)
-        else:
-            raise ValueError('Unknown multi object mode {}'.format(multiobj_mode))
-
-        self.output_boxes = []
-
-        def _build_init_info(box):
-            return {'init_bbox': OrderedDict({1: box}), 'init_object_ids': [1, ], 'object_ids': [1, ],
-                    'sequence_object_ids': [1, ]}
-
-        if optional_box is not None:
-            assert isinstance(optional_box, (list, tuple))
-            assert len(optional_box) == 4, "valid box's foramt is [x,y,w,h]"
-            self.output_boxes.append(optional_box)
-
-        self.tracker.initialize(frame, _build_init_info(optional_box))
-
-    def run_frame(self, frame):
-        if frame is None:
-            return
-
-        out = self.tracker.track(frame)
-        state = [int(s) for s in out['target_bbox'][1]]
-        self.output_boxes.append(state)
-        min_x = state[0]
-        min_y = state[1]
-        max_x = state[2] + state[0]
-        max_y = state[3] + state[1]
-        return min_x, min_y, max_x, max_y, out["flag"][1], out["score"][1]
-
     def run_video(self, videofilepath, optional_box=None, debug=None, visdom_info=None, save_results=False):
         """Run the tracker with the video file.
         args:
@@ -376,7 +325,6 @@ class Tracker:
                 break
 
         while True:
-            start_time = time.time()
             ret, frame = cap.read()
 
             if frame is None:
