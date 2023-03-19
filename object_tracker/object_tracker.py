@@ -28,7 +28,7 @@ class ObjectTracker:
     def run_frame(self, img):
         """
         this method return a bounding flag and score on the given frame.
-        return value: [x,y,w,h], flag(bool), score(float)
+        return value: [x,y,w,h], flag(1 or 0), score(float)
         in case of falure the method returns the image, None
         args:
             img: image
@@ -62,7 +62,6 @@ class ObjectTracker:
             h = max_y - min_y
             if self._run_optical_flow:
                 self._match.set_new_roi([min_x, min_y, w, h])
-
         flag = 1 if flag == "normal" else 0
         # x, y, w, h, was_frame_situation_algo_wise_was_normal, score
         data = [min_x, min_y, max_x - min_x, max_y - min_y, flag, score]
