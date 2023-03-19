@@ -1,6 +1,9 @@
 import logging
+
 from object_tracker.custom_tracker import CustomTracker
 from object_tracker.match import Matcher
+from typing import List, Tuple
+from numpy import ndarray
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -9,9 +12,14 @@ class ObjectTracker:
 
     MAX_COUNTER = 10
 
-    def __init__(self, run_optical_flow=False, use_orb=False, tracker_run_iter=3):
+    def __init__(
+        self,
+        run_optical_flow: bool = False,
+        use_orb: bool = False,
+        tracker_run_iter: int = 3,
+    ):
         """
-        args:
+        Args:
             run_optical_flow: a flag if to run optical flow(using the matcher class)
             use_orb: a flag if to use orb when optical flow falied
             tracker_run_iter: the number of times to run matcher between deep-tracker run.
@@ -25,13 +33,15 @@ class ObjectTracker:
         if self._run_optical_flow:
             self._match = Matcher(use_orb)
 
-    def run_frame(self, img):
+    def run_frame(self, img: ndarray)  -> Tuple[ndarray, List[int], str, float]:
         """
         this method return a bounding flag and score on the given frame.
         return value: [x,y,w,h], flag(1 or 0), score(float)
         in case of falure the method returns the image, None
-        args:
+        Args:
             img: image
+        Returns:
+            img, [x,y,w,h], flag(1 or 0), score
         """
         if not self.init:
             return img, None
@@ -71,10 +81,10 @@ class ObjectTracker:
         data = [min_x, min_y, max_x - min_x, max_y - min_y, flag, score]
         return img, data
 
-    def init_bounding_box(self, frame, bounding_box):
+    def init_bounding_box(self, frame: ndarray, bounding_box: List[int]):
         """
         this method init the first bounding box for the tracker.
-        args:
+        Args:
             frame: image
             bounding_box: [x,y,w,h]
         """
@@ -83,4 +93,4 @@ class ObjectTracker:
         logging.info(f"bounding box: {bounding_box}")
         self.init = True
         if self._run_optical_flow:
-            self._match.init(frame, bounding_box)
+            self._match.init_bounding_box(frame, bounding_box)
