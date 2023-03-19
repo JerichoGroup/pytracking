@@ -109,7 +109,7 @@ class Matcher:
             < self._params.min_points_for_find_homography
         ):
             logging.error(
-                "failed to find enoguh features with optical flow for homography"
+                "failed to find enough features with optical flow for homography"
             )
             return None
         M, _ = cv2.findHomography(
@@ -147,15 +147,21 @@ class Matcher:
         """
         M = None
         logging.info("trying orb")
-        M = self._calc_orb(image)
-        if M is None:
-            logging.error("failed to match features with orb")
+        try:
+            M = self._calc_orb(image)
+            if M is None:
+                logging.error("failed to match features with orb")
+        except Exception as e:
+            logging.error(e)
+            logging.error("orb raise exception")
         return M
 
     def _run_optical_flow(self, image):
         M = None
         try:
             M = self._calc_optical_flow(image)
+            if M is None:
+                logging.error("failed to match features with optical flow")
         except Exception as e:
             logging.error(e)
             logging.error("optical flow raise exception")
