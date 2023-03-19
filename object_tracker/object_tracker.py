@@ -57,7 +57,11 @@ class ObjectTracker:
             self._tracker_counter % self._tracker_run_iter == 0
             or optical_flow_output is None
         ):
-            min_x, min_y, max_x, max_y, flag, score = self._tracker.run_frame(orig)
+            tracker_output = self._tracker.run_frame(orig)
+            if tracker_output is None:
+                return img, None
+
+            min_x, min_y, max_x, max_y, flag, score = tracker_output
             w = max_x - min_x
             h = max_y - min_y
             if self._run_optical_flow:
