@@ -34,6 +34,10 @@ class ObjectTracker:
             self._match = Matcher(use_orb)
 
     def is_tracker_ready(self) -> bool:
+        """
+        this method return a True if the tracker is ready( the tracker ready after
+        init_bounding_box method is called).
+        """
         return self._init
 
     def run_frame(self, img: ndarray) -> Tuple[ndarray, List[int], str, float]:
