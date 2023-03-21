@@ -95,6 +95,8 @@ class Matcher:
         list_kp1 = [kp1[mat.queryIdx].pt for mat in matches]
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
         # if there are not enough features for homography return None
+        print(list_kp1)
+        print(list_kp2)
         if len(list_kp1) < self._params.min_points_for_find_homography:
             return None
         M, _ = cv2.findHomography(
@@ -218,7 +220,7 @@ class Matcher:
         self._find_features(image)
         self._prev_image = image
 
-    def _run_orb_set_new_features(self, image: ndarray):
+    def _run_orb_set_new_features(self, image: ndarray) -> ndarray:
         """
         this method runs orb (if the flag is set), after this the method
         set a new features from the current frame, and set the current image
@@ -235,7 +237,7 @@ class Matcher:
         self._set_new_features(image)
         return M
 
-    def __call__(self, image: ndarray):
+    def __call__(self, image: ndarray) -> List[int]:
         """
         this method runs optical flow and orb(if necessary) on the image.
         Args:
