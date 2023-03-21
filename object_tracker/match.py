@@ -95,8 +95,6 @@ class Matcher:
         list_kp1 = [kp1[mat.queryIdx].pt for mat in matches]
         list_kp2 = [kp2[mat.trainIdx].pt for mat in matches]
         # if there are not enough features for homography return None
-        print(list_kp1)
-        print(list_kp2)
         if len(list_kp1) < self._params.min_points_for_find_homography:
             return None
         M, _ = cv2.findHomography(
