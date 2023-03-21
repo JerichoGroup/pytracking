@@ -29,11 +29,14 @@ class ObjectTracker:
         self._tracker_counter = 0
         self._tracker = CustomTracker("dimp", "dimp18")
         self._match = None
-        self.init = False
+        self._init = False
         if self._run_optical_flow:
             self._match = Matcher(use_orb)
 
-    def run_frame(self, img: ndarray)  -> Tuple[ndarray, List[int], str, float]:
+    def is_tracker_ready(self) -> bool:
+        return self._init
+
+    def run_frame(self, img: ndarray) -> Tuple[ndarray, List[int], str, float]:
         """
         this method return a bounding flag and score on the given frame.
         return value: [x,y,w,h], flag(1 or 0), score(float)
@@ -43,7 +46,7 @@ class ObjectTracker:
         Returns:
             img, [x,y,w,h], flag(1 or 0), score
         """
-        if not self.init:
+        if not self.is_tracker_ready():
             return img, None
         if self._tracker_counter > ObjectTracker.MAX_COUNTER:
             self._tracker_counter = 0
@@ -91,6 +94,6 @@ class ObjectTracker:
         self._tracker.init_tracker(frame, bounding_box)
         logging.info("finish init tracker bounding box")
         logging.info(f"bounding box: {bounding_box}")
-        self.init = True
+        self._init = True
         if self._run_optical_flow:
             self._match.init_bounding_box(frame, bounding_box)
