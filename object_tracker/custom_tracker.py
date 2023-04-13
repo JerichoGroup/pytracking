@@ -25,6 +25,7 @@ class CustomTracker(Tracker):
         min_y = state[1]
         max_x = state[2] + state[0]
         max_y = state[3] + state[1]
+
         return min_x, min_y, max_x, max_y, out["flag"], out["score"]
 
     def init_tracker(self, frame, bounding_box: List[int]):

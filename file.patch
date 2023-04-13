@@ -1,0 +1,37 @@
+--- ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py	2023-02-12 08:46:40.133064024 -0500
++++ ./functional_update.py	2023-02-12 08:48:00.129199562 -0500
+@@ -26,6 +26,21 @@
+             from os.path import join as pjoin, dirname
+             from torch.utils.cpp_extension import load as load_extension
+             root_dir = pjoin(dirname(__file__), 'src')
++            from torch.utils.cpp_extension import _import_module_from_library
++            _prroi_pooling = _import_module_from_library("_prroi_pooling", "/home/jetson/.cache/torch_extensions/_prroi_pooling", True)
++        except ImportError:
++            raise ImportError('Can not compile Precise RoI Pooling library.')
++
++    return _prroi_pooling
++
++def _import_prroi_pooling_on_build():
++    global _prroi_pooling
++
++    if _prroi_pooling is None:
++        try:
++            from os.path import join as pjoin, dirname
++            from torch.utils.cpp_extension import load as load_extension
++            root_dir = pjoin(dirname(__file__), 'src')
+ 
+             _prroi_pooling = load_extension(
+                 '_prroi_pooling',
+@@ -37,6 +52,7 @@
+ 
+     return _prroi_pooling
+ 
++pp
+ 
+ class PrRoIPool2DFunction(ag.Function):
+     @staticmethod
+@@ -83,4 +99,3 @@
+ 
+ prroi_pool2d = PrRoIPool2DFunction.apply
+ 
+-

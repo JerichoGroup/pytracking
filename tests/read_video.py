@@ -1,7 +1,15 @@
 import cv2
 import sys
 
-VIDEO_PATH = "video.mp4"
+
+
+VIDEO_PATH = "bike_stand_fast.mp4"
+#VIDEO_PATH =  "octagon_fly6.mp4"
+#VIDEO_PATH = "out.mp4"
+#VIDEO_PATH = "/tmp/video4.mp4"
+# VIDEO_PATH="/media/jetson/6436-3639/beU/data/beu-data-stable/videos/carpet_fly7.mp4"
+# VIDEO_PATH="/media/jetson/6436-3639/beU/data/beu-data-stable/videos/carpet_fly3.mp4"
+
 sys.path.append("/home/jetson/ros/pytracking/")
 
 from object_tracker.object_tracker import ObjectTracker
@@ -10,7 +18,8 @@ from object_tracker.object_tracker import ObjectTracker
 class ReadImage:
     def __init__(self, video_path):
         self.cap = cv2.VideoCapture(video_path)
-        self.tracker = ObjectTracker()
+        # self.tracker = ObjectTracker(False, True, run_of_low_score=True)
+        self.tracker = ObjectTracker(False, False)
 
     def run(self):
         display_name = "frame"
@@ -40,8 +49,16 @@ class ReadImage:
             key = cv2.waitKey(1)
             # print(data)
             first = False
+            break
 
 
 if __name__ == "__main__":
+    import cProfile
+    import pstats
+    profiler = cProfile.Profile()
+    profiler.enable()
     ReadImage(VIDEO_PATH).run()
-
+    profiler.disable()
+    stats = pstats.Stats(profiler).sort_stats("tottime")
+    file_name = VIDEO_PATH.split('.')[0]
+    stats.dump_stats(file_name + '.prof')

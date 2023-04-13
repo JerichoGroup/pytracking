@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - object_tracker: object_tracker.yaml
+  - match: match.yaml

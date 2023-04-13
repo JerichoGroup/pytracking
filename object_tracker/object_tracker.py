@@ -17,7 +17,9 @@ class ObjectTracker:
         run_optical_flow: bool = False,
         use_orb: bool = False,
         tracker_run_iter: int = 3,
-    ):
+        run_of_low_score: bool = False,
+        score_thresh: float = 0.3
+        ):
         """
         Args:
             run_optical_flow: a flag if to run optical flow(using the matcher class)
@@ -25,12 +27,14 @@ class ObjectTracker:
             tracker_run_iter: the number of times to run matcher between deep-tracker run.
         """
         self._run_optical_flow = run_optical_flow
+        self.run_of_low_score = run_of_low_score
+        self.score_thresh = score_thresh
         self._tracker_run_iter = max(tracker_run_iter, 1)
         self._tracker_counter = 0
         self._tracker = CustomTracker("dimp", "dimp18")
         self._match = None
         self._init = False
-        if self._run_optical_flow:
+        if self._run_optical_flow or self.run_of_low_score:
             self._match = Matcher(use_orb)
 
     def is_tracker_ready(self) -> bool:
@@ -77,12 +81,35 @@ class ObjectTracker:
             tracker_output = self._tracker.run_frame(orig)
             if tracker_output is None:
                 return img, None
-
+            
             min_x, min_y, max_x, max_y, flag, score = tracker_output
+
+
+
+            if self.run_of_low_score:
+                if self._tracker_counter % self._tracker_run_iter != 0:
+                    try:
+                        optical_flow_output = self._match(orig)
+                    except Exception as e:
+                        logging.error(e)
+                        logging.error("match raise exception")
+                    if optical_flow_output is not None:
+                        if score < self.score_thresh:
+                            logging.info(f'Score is low, running OF {score}')
+                            min_x, min_y, max_x, max_y = optical_flow_output
+                            flag = "normal"
+                            score = 0
+                    else:
+                        logging.error("failed to match features with matcher")
+                
+                
+                
+
             w = max_x - min_x
             h = max_y - min_y
-            if self._run_optical_flow:
+            if self._run_optical_flow or self.run_of_low_score:
                 self._match.set_new_roi([min_x, min_y, w, h])
+
         flag = 1 if flag == "normal" else 0
         # x, y, w, h, was_frame_situation_algo_wise_was_normal, score
         data = [min_x, min_y, max_x - min_x, max_y - min_y, flag, score]
@@ -99,5 +126,8 @@ class ObjectTracker:
         logging.info("finish init tracker bounding box")
         logging.info(f"bounding box: {bounding_box}")
         self._init = True
-        if self._run_optical_flow:
+        if self._run_optical_flow or self.run_of_low_score:
             self._match.init_bounding_box(frame, bounding_box)
+
+    def get_parameters(self):
+        return self._tracker.get_parameters()

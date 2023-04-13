@@ -249,7 +249,8 @@ class Matcher:
         # check if there are enough features for using optical flow
         # if not and use_orb flag is set, the method tries to find
         # features using orb detector
-        if len(self._features) == 0 or len(self._features.shape) < 2:
+        # if len(self._features) == 0 or len(self._features.shape) < 2:
+        if True:
             if self._use_orb is True:
                 M = self._run_orb_set_new_features(image)
                 if M is None:
