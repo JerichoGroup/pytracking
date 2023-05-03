@@ -8,6 +8,21 @@ from numpy import ndarray
 class CustomTracker(Tracker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        params = self.get_parameters()
+
+        debug_ = getattr(params, "debug", 0)
+        params.debug = debug_
+
+        params.tracker_name = self.name
+        params.param_name = self.parameter_name
+
+       # dimp can work also in "multiobj_mode", but in out usage we use default mode
+        multiobj_mode = "default"
+        self.tracker = self.create_tracker(params)
+        if hasattr(self.tracker, "initialize_features"):
+            self.tracker.initialize_features()
+        
+
 
     def run_frame(self, frame: ndarray) -> Tuple[List[int], str, float]:
         """
@@ -35,18 +50,6 @@ class CustomTracker(Tracker):
             frame: image
             bounding_box: [x,y,w,h]
         """
-        params = self.get_parameters()
-        debug_ = getattr(params, "debug", 0)
-        params.debug = debug_
-
-        params.tracker_name = self.name
-        params.param_name = self.parameter_name
-
-        # dimp can work also in "multiobj_mode", but in out usage we use default mode
-        multiobj_mode = "default"
-        self.tracker = self.create_tracker(params)
-        if hasattr(self.tracker, "initialize_features"):
-            self.tracker.initialize_features()
 
         def _build_init_info(box):
             return {

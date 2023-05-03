@@ -2,7 +2,6 @@ import cv2
 import sys
 
 
-
 VIDEO_PATH = "bike_stand_fast.mp4"
 #VIDEO_PATH =  "octagon_fly6.mp4"
 #VIDEO_PATH = "out.mp4"
@@ -20,6 +19,7 @@ class ReadImage:
         self.cap = cv2.VideoCapture(video_path)
         # self.tracker = ObjectTracker(False, True, run_of_low_score=True)
         self.tracker = ObjectTracker(False, False)
+    
 
     def run(self):
         display_name = "frame"
@@ -49,7 +49,7 @@ class ReadImage:
             key = cv2.waitKey(1)
             # print(data)
             first = False
-            break
+            
 
 
 if __name__ == "__main__":
@@ -57,8 +57,9 @@ if __name__ == "__main__":
     import pstats
     profiler = cProfile.Profile()
     profiler.enable()
-    ReadImage(VIDEO_PATH).run()
+    reader = ReadImage(VIDEO_PATH)
+    reader.run()
     profiler.disable()
-    stats = pstats.Stats(profiler).sort_stats("tottime")
+    stats = pstats.Stats(profiler).sort_stats("cumtime")
     file_name = VIDEO_PATH.split('.')[0]
     stats.dump_stats(file_name + '.prof')

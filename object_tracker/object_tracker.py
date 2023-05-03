@@ -18,7 +18,7 @@ class ObjectTracker:
         use_orb: bool = False,
         tracker_run_iter: int = 3,
         run_of_low_score: bool = False,
-        score_thresh: float = 0.3
+        score_thresh: float = 0.4
         ):
         """
         Args:
@@ -36,6 +36,7 @@ class ObjectTracker:
         self._init = False
         if self._run_optical_flow or self.run_of_low_score:
             self._match = Matcher(use_orb)
+    
 
     def is_tracker_ready(self) -> bool:
         """
