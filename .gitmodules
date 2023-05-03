@@ -4,3 +4,6 @@
 [submodule "beu-evaluator"]
 	path = beu-evaluator
 	url = git@github.com:JerichoGroup/beu-evaluator.git
+[submodule "beu-data"]
+	path = beu-data
+	url = git@github.com:JerichoGroup/beu-data.git
