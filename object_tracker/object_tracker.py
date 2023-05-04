@@ -4,7 +4,7 @@ from object_tracker.custom_tracker import CustomTracker
 from object_tracker.match import Matcher
 from typing import List, Tuple
 from numpy import ndarray
-
+from omegaconf import DictConfig
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -14,11 +14,15 @@ class ObjectTracker:
 
     def __init__(
         self,
-        run_optical_flow: bool = False,
-        use_orb: bool = False,
-        tracker_run_iter: int = 3,
-        run_of_low_score: bool = False,
-        score_thresh: float = 0.4
+        cfg: DictConfig
+        # run_optical_flow: bool = False,
+        # use_orb: bool = False,
+        # tracker_run_iter: int = 3,
+        # run_of_low_score: bool = False,
+        # score_thresh: float = 0.4,
+        # name: str = "dimp",
+        # param_name: str = "dimp18"
+
         ):
         """
         Args:
@@ -26,16 +30,16 @@ class ObjectTracker:
             use_orb: a flag if to use orb when optical flow falied
             tracker_run_iter: the number of times to run matcher between deep-tracker run.
         """
-        self._run_optical_flow = run_optical_flow
-        self.run_of_low_score = run_of_low_score
-        self.score_thresh = score_thresh
-        self._tracker_run_iter = max(tracker_run_iter, 1)
+        self._run_optical_flow = cfg.run_optical_flow
+        self.run_of_low_score = cfg.run_of_low_score
+        self.score_thresh = cfg.score_thresh
+        self._tracker_run_iter = max(cfg.tracker_run_iter, 1)
         self._tracker_counter = 0
-        self._tracker = CustomTracker("dimp", "dimp18")
+        self._tracker = CustomTracker(cfg.name, cfg.param_name)
         self._match = None
         self._init = False
         if self._run_optical_flow or self.run_of_low_score:
-            self._match = Matcher(use_orb)
+            self._match = Matcher(cfg.Matcher, cfg.use_orb)
     
 
     def is_tracker_ready(self) -> bool:

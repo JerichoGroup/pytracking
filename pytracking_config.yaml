@@ -1,0 +1,31 @@
+ObjectTracker:
+        run_optical_flow: False # A flag if to run optical flow(using the matcher class)
+        use_orb: False # A flag if to use orb when optical flow falied
+        tracker_run_iter: 3 #  The number of times to run matcher between deep-tracker run.
+        run_of_low_score: False # Run optical flow\ ORB on low scores of deep-tracker
+        score_thresh: 0.4 # Threshold for scores of deep-tracker
+        name: "dimp" # Name of deep-tracker
+        param_name : "dimp18" # Name of params for deep tracker
+
+        Matcher:
+          num_orb_features : 200
+          bidirectional_enable : True
+          bidirectional_thresh : 5.0
+          min_points_for_find_homography : 40
+          detection_params:
+            maxCorners: 500
+            qualityLevel: 0.01
+            minDistance: 17
+            blockSize: 7
+          tracking_params :
+            winSize: [15, 15]
+            maxLevel: 5
+            minEigThreshold : 5 * 10 ** -4
+          criteria_params:
+              CRITERIA_EPS: 2 # cv2.TERM_CRITERIA_EPS
+              CRITERIA_COUNT : 1 # cv2.TERM_CRITERIA_COUNT
+              criteria_param: 30
+              criteria_param2: 0.003
+          
+
+      

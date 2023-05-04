@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "~/jerico_projects/vision-based-navigation",
+        "./beu-evaluator"
+    ]
+}

@@ -2,6 +2,8 @@ import cv2
 import sys
 
 
+CONFIG_PATH = "../pytracking_config.yaml"
+
 VIDEO_PATH = "bike_stand_fast.mp4"
 #VIDEO_PATH =  "octagon_fly6.mp4"
 #VIDEO_PATH = "out.mp4"
@@ -11,6 +13,7 @@ VIDEO_PATH = "bike_stand_fast.mp4"
 
 sys.path.append("/home/jetson/ros/pytracking/")
 
+from utils import utils
 from object_tracker.object_tracker import ObjectTracker
 
 
@@ -18,10 +21,11 @@ class ReadImage:
     def __init__(self, video_path):
         self.cap = cv2.VideoCapture(video_path)
         # self.tracker = ObjectTracker(False, True, run_of_low_score=True)
-        self.tracker = ObjectTracker(False, False)
+        cfg = utils.read_yaml(CONFIG_PATH)
+        self.tracker = ObjectTracker(cfg.ObjectTracker)
     
 
-    def run(self):
+    def run(self, gt_lov = None):
         display_name = "frame"
         first = True
         while True:

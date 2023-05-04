@@ -4,35 +4,40 @@ import collections
 import numpy as np
 from typing import List
 from numpy import ndarray
-
+from omegaconf import DictConfig
 Roi = collections.namedtuple("Roi", ["min_x", "min_y", "w", "h"])
 
 
 class Matcher:
     class Params:
-        def __init__(self):
-            self.num_orb_features = 200
-            self.bidirectional_enable = True
-            self.bidirectional_thresh = 5.0
-            self.min_points_for_find_homography = 40
+        def __init__(self, cfg: DictConfig):
+            self.num_orb_features = cfg.num_orb_features
+            self.bidirectional_enable = cfg.bidirectional_enable
+            self.bidirectional_thresh = cfg.bidirectional_thresh
+            self.min_points_for_find_homography = cfg.min_points_for_find_homography
             self.detection_params = dict(
-                maxCorners=500, qualityLevel=0.01, minDistance=17, blockSize=7
+                maxCorners=cfg.detection_params.maxCorners,
+                qualityLevel=cfg.detection_params.qualityLevel,
+                minDistance=cfg.detection_params.minDistance,
+                blockSize=cfg.detection_params.blockSize
             )
             self.tracking_params = dict(
-                winSize=(15, 15),
-                maxLevel=5,
-                criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.003),
-                minEigThreshold=5e-4,
+                winSize=cfg.tracking_params.winSize,
+                maxLevel=cfg.tracking_params.maxLevel,
+                criteria=(
+                cfg.criteria_params.CRITERIA_EPS | cfg.criteria_params.CRITERIA_COUNT,
+                 cfg.criteria_params.criteria_param, cfg.criteria_params.criteria_param2),
+                minEigThreshold=cfg.tracking_params.minEigThreshold
             )
 
-    def __init__(self, use_orb: bool = False, params=Params()):
+    def __init__(self, cfg : DictConfig, use_orb: bool = False ):
         """
         Args:
             use_orb: flag if use orb detector when optical flow falied.
             params: a Params class contains the parameters for the Matcher.
         """
         self._use_orb = use_orb
-        self._params = params
+        self._params = Params(cfg)
         self._prev_image = None
         self._features = None
         self._orb = None
