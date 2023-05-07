@@ -1,3 +1,4 @@
+
 ObjectTracker:
         run_optical_flow: False # A flag if to run optical flow(using the matcher class)
         use_orb: False # A flag if to use orb when optical flow falied

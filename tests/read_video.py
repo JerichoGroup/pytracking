@@ -1,8 +1,13 @@
 import cv2
 import sys
+from pathlib import Path
+import cProfile
+import pstats
 
+PYTRACKING_PATH = str(Path(__file__).absolute().parent.parent)
 
-CONFIG_PATH = "../pytracking_config.yaml"
+sys.path.append(PYTRACKING_PATH)
+CONFIG_PATH = PYTRACKING_PATH + "/pytracking_config.yaml"
 
 VIDEO_PATH = "bike_stand_fast.mp4"
 #VIDEO_PATH =  "octagon_fly6.mp4"
@@ -10,8 +15,6 @@ VIDEO_PATH = "bike_stand_fast.mp4"
 #VIDEO_PATH = "/tmp/video4.mp4"
 # VIDEO_PATH="/media/jetson/6436-3639/beU/data/beu-data-stable/videos/carpet_fly7.mp4"
 # VIDEO_PATH="/media/jetson/6436-3639/beU/data/beu-data-stable/videos/carpet_fly3.mp4"
-
-sys.path.append("/home/jetson/ros/pytracking/")
 
 from utils import utils
 from object_tracker.object_tracker import ObjectTracker
@@ -28,10 +31,11 @@ class ReadImage:
     def run(self, gt_lov = None):
         display_name = "frame"
         first = True
+        counter = 0
         while True:
             ret, frame = self.cap.read()
             key = cv2.waitKey(1)
-            if key == ord("r") or first:
+            if key == ord("r") or first or counter == 20:
                 cv2.putText(
                     frame,
                     "Select target ROI and press ENTER",
@@ -43,7 +47,13 @@ class ReadImage:
                 )
                 cv2.imshow(display_name, frame)
                 x, y, w, h = cv2.selectROI(display_name, frame, fromCenter=False)
+                profiler = cProfile.Profile()
+                profiler.enable()
                 self.tracker.init_bounding_box(frame, [x, y, w, h])
+                profiler.disable()
+                stats = pstats.Stats(profiler).sort_stats("cumtime")
+                file_name = VIDEO_PATH.split('.')[0]
+                stats.dump_stats(file_name + str(counter) + '.prof')
             if not ret:
                 break
             image, data = self.tracker.run_frame(frame)
@@ -53,17 +63,18 @@ class ReadImage:
             key = cv2.waitKey(1)
             # print(data)
             first = False
+            counter += 1
             
 
 
 if __name__ == "__main__":
-    import cProfile
-    import pstats
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # import cProfile
+    # import pstats
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     reader = ReadImage(VIDEO_PATH)
     reader.run()
-    profiler.disable()
-    stats = pstats.Stats(profiler).sort_stats("cumtime")
-    file_name = VIDEO_PATH.split('.')[0]
-    stats.dump_stats(file_name + '.prof')
+    # profiler.disable()
+    # stats = pstats.Stats(profiler).sort_stats("cumtime")
+    # file_name = VIDEO_PATH.split('.')[0]
+    # stats.dump_stats(file_name + '.prof')

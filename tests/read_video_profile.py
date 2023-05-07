@@ -1,9 +1,12 @@
 import cv2
 import sys
 from vprof import runner
+from pathlib import Path
 
+PYTRACKING_PATH = str(Path(__file__).absolute().parent.parent)
+
+sys.path.append(PYTRACKING_PATH)
 VIDEO_PATH = "bike_stand_fast.mp4"
-sys.path.append("/home/jetson/ros/pytracking/")
 
 from object_tracker.object_tracker import ObjectTracker
 

@@ -1,16 +1,17 @@
 import pytest
 import cv2
 import sys
-
 import numpy as np
-
 from mock import patch
+from pathlib import Path
 
-PYTRACKING_PATH = "/home/jetson/ros/pytracking/"
+PYTRACKING_PATH = str(Path(__file__).absolute().parent.parent)
 
-VIDEO_PATH = PYTRACKING_PATH + "/tests/video.mp4"
 sys.path.append(PYTRACKING_PATH)
 
+VIDEO_PATH = PYTRACKING_PATH + "/tests/video.mp4"
+CONFIG_PATH = PYTRACKING_PATH + "/pytracking_config.yaml"
+from utils import utils
 
 from object_tracker.object_tracker import ObjectTracker
 from object_tracker.match import Matcher
@@ -31,7 +32,8 @@ def test_raise_exception_in_matcher(
         side_effect=Exception("optical flow falied"),
     ) as mocked_object:
         cap = cv2.VideoCapture(video_path)
-        tracker = ObjectTracker(run_optical_flow, use_orb)
+        cfg = utils.read_yaml(CONFIG_PATH)
+        tracker = ObjectTracker(cfg.ObjectTracker)
         ret, frame = cap.read()
         x, y, w, h = [100, 100, 20, 20]
         tracker.init_bounding_box(frame, [x, y, w, h])
@@ -48,7 +50,8 @@ def test_run_on_frame(video_path, run_optical_flow, use_orb, num_frame_run=20):
     this test run a video on the tracker
     """
     cap = cv2.VideoCapture(video_path)
-    tracker = ObjectTracker(run_optical_flow, use_orb)
+    cfg = utils.read_yaml(CONFIG_PATH)
+    tracker = ObjectTracker(cfg.ObjectTracker)
     ret, frame = cap.read()
     x, y, w, h = [100, 100, 20, 20]
     tracker.init_bounding_box(frame, [x, y, w, h])
@@ -68,7 +71,8 @@ def test_run_on_frame_using_orb(
     this test make the optical flow to fail to trigger the use of orb detector
     """
     cap = cv2.VideoCapture(video_path)
-    tracker = ObjectTracker(run_optical_flow, use_orb)
+    cfg = utils.read_yaml(CONFIG_PATH)
+    tracker = ObjectTracker(cfg.ObjectTracker)
     ret, frame = cap.read()
     x, y, w, h = [100, 100, 20, 20]
     tracker.init_bounding_box(frame, [x, y, w, h])
@@ -89,7 +93,8 @@ def test_run_on_random_frame(video_path, run_optical_flow, use_orb, num_frame_ru
     this test run a video on the tracker
     """
     cap = cv2.VideoCapture(video_path)
-    tracker = ObjectTracker(run_optical_flow, use_orb)
+    cfg = utils.read_yaml(CONFIG_PATH)
+    tracker = ObjectTracker(cfg.ObjectTracker)
     ret, frame = cap.read()
     x, y, w, h = [100, 100, 20, 20]
     tracker.init_bounding_box(frame, [x, y, w, h])
