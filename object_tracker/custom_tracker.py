@@ -27,7 +27,7 @@ class CustomTracker(Tracker):
         max_y = state[3] + state[1]
         return min_x, min_y, max_x, max_y, out["flag"], out["score"]
 
-    def init_tracker(self, frame, bounding_box: List[int]):
+    def init_tracker(self, frame: ndarray, bounding_box: List[int]):
         """
         the method init the tracker
         Args:
@@ -61,7 +61,4 @@ class CustomTracker(Tracker):
                 ],
             }
 
-        if bounding_box is not None:
-            assert isinstance(bounding_box, (list, tuple))
-            assert len(bounding_box) == 4, "valid box's foramt is [x,y,w,h]"
         self.tracker.initialize(frame, _build_init_info(bounding_box))

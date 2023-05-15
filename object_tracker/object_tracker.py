@@ -11,6 +11,9 @@ logging.getLogger().setLevel(logging.INFO)
 class ObjectTracker:
 
     MAX_COUNTER = 10
+    TRACKER_SUCCESS = "normal"
+    SUCCESS = 1
+    FAIL = 0
 
     def __init__(
         self,
@@ -66,7 +69,7 @@ class ObjectTracker:
                     logging.error("match raise exception")
                 if optical_flow_output is not None:
                     min_x, min_y, max_x, max_y = optical_flow_output
-                    flag = "normal"
+                    flag = ObjectTracker.TRACKER_SUCCESS
                     score = 0
                 else:
                     logging.error("failed to match features with matcher")
@@ -83,7 +86,7 @@ class ObjectTracker:
             h = max_y - min_y
             if self._run_optical_flow:
                 self._match.set_new_roi([min_x, min_y, w, h])
-        flag = 1 if flag == "normal" else 0
+        flag = ObjectTracker.SUCCESS if flag == ObjectTracker.TRACKER_SUCCESS else ObjectTracker.FAIL
         # x, y, w, h, was_frame_situation_algo_wise_was_normal, score
         data = [min_x, min_y, max_x - min_x, max_y - min_y, flag, score]
         return img, data

@@ -53,7 +53,7 @@ class Matcher:
         self._set_new_features(image)
         logging.info("finish init matcher")
 
-    def set_new_roi(self, roi):
+    def set_new_roi(self, roi: List[int]):
         """
         this method sets a new roi
         Args:
