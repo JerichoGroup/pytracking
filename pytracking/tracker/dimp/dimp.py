@@ -232,7 +232,7 @@ class DiMP(BaseTracker):
         output_sz = score_sz - (self.kernel_size + 1) % 2
         translation_vec = target_disp * (self.img_support_sz / output_sz) * sample_scales[scale_ind]
 
-        return translation_vec, scale_ind, scores, None
+        return translation_vec, scale_ind, scores, None, None
 
     def localize_advanced(self, scores, sample_pos, sample_scales):
         """Run the target advanced localization (as in ATOM)."""

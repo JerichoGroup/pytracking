@@ -19,9 +19,15 @@ tracker_output: [top_left_x, top_left_y, box_width, box_height, was_frame_algori
 ### Run Tests + Coverage
 ```zsh
 coverage run -m pytest ./tests/test.py
+with logging:
+pytest ./tests/test.py -o log_cli=true
 ```
 
 ### patch PreciseRoIPooling for faster loading
+this patch used for prevent pytorch for compile PreciseRoIPooling again by changing the import
+method.
+the patch assume the path of torch extenstions is locate here: 
+/root/.cache/torch_extensions/_prroi_pooling
 ```zsh
 patch ltr/external/PreciseRoIPooling/pytorch/prroi_pool/functional.py faster_import_patch
 ```
