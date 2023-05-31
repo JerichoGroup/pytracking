@@ -256,7 +256,7 @@ class Tracker:
         output['object_presence_score_threshold'] = tracker.params.get('object_presence_score_threshold', 0.55)
 
         return output
-
+        
     def run_video(self, videofilepath, optional_box=None, debug=None, visdom_info=None, save_results=False):
         """Run the tracker with the video file.
         args:
