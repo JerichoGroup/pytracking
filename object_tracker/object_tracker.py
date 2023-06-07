@@ -38,6 +38,8 @@ class ObjectTracker:
         self._tracker = CustomTracker(cfg.name, cfg.param_name)
         self._match = None
         self._init = False
+        self._scores = []
+        self._score_size = cfg.score_size
         if self._run_optical_flow or self.run_of_low_score:
             self._match = Matcher(cfg.Matcher, cfg.use_orb)
     
@@ -106,7 +108,17 @@ class ObjectTracker:
                             score = 0
                     else:
                         logging.error("failed to match features with matcher")
-                
+            # Check if the average score for the scores list is lower than the threshold.  
+            # if self._score_size != 0:          
+            #     if len(self._scores) < self._score_size:
+            #         self._scores.append(score)
+            #     else:
+            #         self._scores.pop(0)
+            #         self._scores.append(score)
+            #         if (sum(self._scores) /self._score_size) < self.score_thresh:
+            #             self._scores = []
+            #             return None
+        
                 
                 
 

@@ -1,13 +1,13 @@
 
 ObjectTracker:
-        run_optical_flow: False # A flag if to run optical flow(using the matcher class)
-        use_orb: False # A flag if to use orb when optical flow falied
+        run_optical_flow: True # A flag if to run optical flow(using the matcher class)
+        use_orb: True # A flag if to use orb when optical flow falied
         tracker_run_iter: 3 #  The number of times to run matcher between deep-tracker run.
         run_of_low_score: False # Run optical flow\ ORB on low scores of deep-tracker
         score_thresh: 0.4 # Threshold for scores of deep-tracker
         name: "dimp" # Name of deep-tracker
         param_name : "dimp18" # Name of params for deep tracker
-
+        score_size : 0 # Number of scores to keep for choosing new bounding box
         Matcher:
           num_orb_features : 200
           bidirectional_enable : True

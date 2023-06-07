@@ -31,11 +31,10 @@ class ReadImage:
     def run(self, gt_lov = None):
         display_name = "frame"
         first = True
-        counter = 0
         while True:
             ret, frame = self.cap.read()
             key = cv2.waitKey(1)
-            if key == ord("r") or first or counter == 20:
+            if key == ord("r") or first:
                 cv2.putText(
                     frame,
                     "Select target ROI and press ENTER",
@@ -47,13 +46,7 @@ class ReadImage:
                 )
                 cv2.imshow(display_name, frame)
                 x, y, w, h = cv2.selectROI(display_name, frame, fromCenter=False)
-                profiler = cProfile.Profile()
-                profiler.enable()
-                self.tracker.init_bounding_box(frame, [x, y, w, h])
-                profiler.disable()
-                stats = pstats.Stats(profiler).sort_stats("cumtime")
-                file_name = VIDEO_PATH.split('.')[0]
-                stats.dump_stats(file_name + str(counter) + '.prof')
+
             if not ret:
                 break
             image, data = self.tracker.run_frame(frame)
@@ -63,7 +56,6 @@ class ReadImage:
             key = cv2.waitKey(1)
             # print(data)
             first = False
-            counter += 1
             
 
 

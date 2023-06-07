@@ -21,9 +21,9 @@ class CustomTracker(Tracker):
         self.tracker = self.create_tracker(params)
         if hasattr(self.tracker, "initialize_features"):
             self.tracker.initialize_features()
-        # image = np.zeros((512, 640, 3), dtype=np.uint8)
-        # bb = [10, 10 ,10 ,10]
-        # self.init_tracker(image, bb)
+        image = np.zeros((512, 640, 3), dtype=np.uint8)
+        bb = [10, 10 ,10 ,10]
+        self.init_tracker(image, bb)
 
         
 
