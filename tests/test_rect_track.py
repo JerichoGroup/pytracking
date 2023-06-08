@@ -15,7 +15,6 @@ from beu_evaluator import evaluator
 from beu_evaluator.algorithms.pytracking import ObjectTrackerAlgo
 from beu_evaluator.utils import metrics, utils
 
-import read_video
 
 
 TMP_VID_PATH = '/tmp/test_vid.mp4'
