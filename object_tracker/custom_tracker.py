@@ -16,8 +16,6 @@ class CustomTracker(Tracker):
         params.tracker_name = self.name
         params.param_name = self.parameter_name
 
-       # dimp can work also in "multiobj_mode", but in out usage we use default mode
-        multiobj_mode = "default"
         self.tracker = self.create_tracker(params)
         if hasattr(self.tracker, "initialize_features"):
             self.tracker.initialize_features()
