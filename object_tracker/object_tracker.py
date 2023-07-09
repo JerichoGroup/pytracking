@@ -15,14 +15,6 @@ class ObjectTracker:
     def __init__(
         self,
         cfg: DictConfig
-        # run_optical_flow: bool = False,
-        # use_orb: bool = False,
-        # tracker_run_iter: int = 3,
-        # run_of_low_score: bool = False,
-        # score_thresh: float = 0.4,
-        # name: str = "dimp",
-        # param_name: str = "dimp18"
-
         ):
         """
         Args:
@@ -109,15 +101,15 @@ class ObjectTracker:
                     else:
                         logging.error("failed to match features with matcher")
             # Check if the average score for the scores list is lower than the threshold.  
-            # if self._score_size != 0:          
-            #     if len(self._scores) < self._score_size:
-            #         self._scores.append(score)
-            #     else:
-            #         self._scores.pop(0)
-            #         self._scores.append(score)
-            #         if (sum(self._scores) /self._score_size) < self.score_thresh:
-            #             self._scores = []
-            #             return None
+            if self._score_size != 0:          
+                if len(self._scores) < self._score_size:
+                    self._scores.append(score)
+                else:
+                    self._scores.pop(0)
+                    self._scores.append(score)
+                    if (sum(self._scores) /self._score_size) < self.score_thresh:
+                        self._scores = []
+                        return None
         
                 
                 

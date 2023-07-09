@@ -1,3 +1,4 @@
+# Sanity test for the tracker, tracking small white rectangle.
 import pytest
 import cv2
 import numpy as np
@@ -31,6 +32,7 @@ def rotate_rect(points, angle_rad):
 
 def create_vid(vid_length = 100, image_size:int = 600, top_left_x_start = 270, top_left_y_start = 270, w = 20, h =20,
                step_size = 5, angle_rang = [-20, 20]):
+    # Create video with small retangle to test the tracker
 
     image = np.zeros((image_size, image_size), dtype=np.uint8)
     bot_right_y = top_left_y_start + h
